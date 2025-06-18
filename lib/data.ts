@@ -1,4 +1,4 @@
-import { Trophy, Crown, Flame, TrendingUp } from "lucide-react"
+import { Trophy, Crown, Flame, TrendingUp } from "lucide-react";
 import type {
   HeroContent,
   StreamingService,
@@ -13,7 +13,7 @@ import type {
   FriendRequest,
   CampfireChat,
   FriendChat,
-} from "./types"
+} from "./types";
 
 export const heroContent: HeroContent[] = [
   {
@@ -31,7 +31,8 @@ export const heroContent: HeroContent[] = [
     title: "The Boys",
     subtitle: "WATCH NOW | prime video",
     background: "/placeholder.svg?height=400&width=800",
-    description: "A group of vigilantes set out to take down corrupt superheroes who abuse their superpowers.",
+    description:
+      "A group of vigilantes set out to take down corrupt superheroes who abuse their superpowers.",
     platform: "Prime Video",
     type: "Amazon Original",
   },
@@ -45,42 +46,95 @@ export const heroContent: HeroContent[] = [
     platform: "Netflix",
     type: "Netflix Original",
   },
-]
+];
 
 export const streamingServices: StreamingService[] = [
-  { id: 1, name: "Netflix", shortName: "Netflix" },
-  { id: 2, name: "Prime Video", shortName: "Prime" },
+  {
+    id: 1,
+    name: "Netflix",
+    shortName: "Netflix",
+    image: "hello",
+    redirectUrl: "/netflix",
+  },
+  {
+    id: 2,
+    name: "Prime Video",
+    shortName: "Prime",
+    image: "temp",
+    redirectUrl: "/prime",
+  },
   { id: 3, name: "Freevee", shortName: "Freevee" },
   { id: 4, name: "YouTube", shortName: "YouTube" },
   { id: 5, name: "Disney+", shortName: "Disney+" },
   { id: 6, name: "Hulu", shortName: "Hulu" },
-]
+];
 
 export const contentRows: ContentRow[] = [
   {
     id: 1,
     title: "Amazon Originals",
     items: [
-      { id: 1, title: "The Wilds", image: "/placeholder.svg?height=200&width=140", platform: "Prime Video" },
-      { id: 2, title: "Outlander", image: "/placeholder.svg?height=200&width=140", platform: "Starz" },
-      { id: 3, title: "Horror Movie", image: "/placeholder.svg?height=200&width=140", platform: "Prime Video" },
-      { id: 4, title: "Yellowjackets", image: "/placeholder.svg?height=200&width=140", platform: "Showtime" },
-      { id: 5, title: "Baywatch", image: "/placeholder.svg?height=200&width=140", platform: "Pluto TV" },
-      { id: 6, title: "Reacher", image: "/placeholder.svg?height=200&width=140", platform: "Prime Video" },
+      {
+        id: 1,
+        title: "The Wilds",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Prime Video",
+      },
+      {
+        id: 2,
+        title: "Outlander",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Starz",
+      },
+      {
+        id: 3,
+        title: "Horror Movie",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Prime Video",
+      },
+      {
+        id: 4,
+        title: "Yellowjackets",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Showtime",
+      },
+      {
+        id: 5,
+        title: "Baywatch",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Pluto TV",
+      },
+      {
+        id: 6,
+        title: "Reacher",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Prime Video",
+      },
       {
         id: 7,
         title: "The Marvelous Mrs. Maisel",
         image: "/placeholder.svg?height=200&width=140",
         platform: "Prime Video",
       },
-      { id: 8, title: "Bosch", image: "/placeholder.svg?height=200&width=140", platform: "Prime Video" },
+      {
+        id: 8,
+        title: "Bosch",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Prime Video",
+      },
     ],
   },
   {
     id: 2,
     title: "Continue Watching",
     items: [
-      { id: 7, title: "Bel Air", image: "/placeholder.svg?height=200&width=140", platform: "Peacock", progress: 65 },
+      {
+        id: 7,
+        title: "Bel Air",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Peacock",
+        progress: 65,
+      },
       {
         id: 8,
         title: "10 Truths About Love",
@@ -95,7 +149,13 @@ export const contentRows: ContentRow[] = [
         platform: "FOX",
         progress: 89,
       },
-      { id: 10, title: "Girls5eva", image: "/placeholder.svg?height=200&width=140", platform: "Peacock", progress: 45 },
+      {
+        id: 10,
+        title: "Girls5eva",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Peacock",
+        progress: 45,
+      },
       {
         id: 11,
         title: "Star Trek Discovery",
@@ -116,16 +176,51 @@ export const contentRows: ContentRow[] = [
     id: 3,
     title: "Trending Now",
     items: [
-      { id: 12, title: "Wednesday", image: "/placeholder.svg?height=200&width=140", platform: "Netflix" },
-      { id: 13, title: "House of the Dragon", image: "/placeholder.svg?height=200&width=140", platform: "HBO Max" },
-      { id: 14, title: "The Bear", image: "/placeholder.svg?height=200&width=140", platform: "Hulu" },
-      { id: 15, title: "Andor", image: "/placeholder.svg?height=200&width=140", platform: "Disney+" },
-      { id: 16, title: "The Crown", image: "/placeholder.svg?height=200&width=140", platform: "Netflix" },
-      { id: 17, title: "Euphoria", image: "/placeholder.svg?height=200&width=140", platform: "HBO Max" },
-      { id: 18, title: "Ozark", image: "/placeholder.svg?height=200&width=140", platform: "Netflix" },
+      {
+        id: 12,
+        title: "Wednesday",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Netflix",
+      },
+      {
+        id: 13,
+        title: "House of the Dragon",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "HBO Max",
+      },
+      {
+        id: 14,
+        title: "The Bear",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Hulu",
+      },
+      {
+        id: 15,
+        title: "Andor",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Disney+",
+      },
+      {
+        id: 16,
+        title: "The Crown",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Netflix",
+      },
+      {
+        id: 17,
+        title: "Euphoria",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "HBO Max",
+      },
+      {
+        id: 18,
+        title: "Ozark",
+        image: "/placeholder.svg?height=200&width=140",
+        platform: "Netflix",
+      },
     ],
   },
-]
+];
 
 export const mostContactedCampfires: Campfire[] = [
   {
@@ -158,7 +253,7 @@ export const mostContactedCampfires: Campfire[] = [
     clipCount: 15,
     isActive: false,
   },
-]
+];
 
 export const mostSharedClips: Clip[] = [
   {
@@ -200,27 +295,97 @@ export const mostSharedClips: Clip[] = [
     timestamp: "1 day ago",
     campfire: "Weekend Warriors",
   },
-]
+];
 
 export const topSharers: TopSharer[] = [
-  { id: 1, name: "Arnav", clips: 47, badge: "Clip Champ", avatar: "/placeholder.svg?height=40&width=40", rank: 1 },
-  { id: 2, name: "Divya", clips: 32, badge: "Trendsetter", avatar: "/placeholder.svg?height=40&width=40", rank: 2 },
-  { id: 3, name: "Rahul", clips: 28, badge: "ClipMaster", avatar: "/placeholder.svg?height=40&width=40", rank: 3 },
-  { id: 4, name: "Priya", clips: 19, badge: "Rising Star", avatar: "/placeholder.svg?height=40&width=40", rank: 4 },
-]
+  {
+    id: 1,
+    name: "Arnav",
+    clips: 47,
+    badge: "Clip Champ",
+    avatar: "/placeholder.svg?height=40&width=40",
+    rank: 1,
+  },
+  {
+    id: 2,
+    name: "Divya",
+    clips: 32,
+    badge: "Trendsetter",
+    avatar: "/placeholder.svg?height=40&width=40",
+    rank: 2,
+  },
+  {
+    id: 3,
+    name: "Rahul",
+    clips: 28,
+    badge: "ClipMaster",
+    avatar: "/placeholder.svg?height=40&width=40",
+    rank: 3,
+  },
+  {
+    id: 4,
+    name: "Priya",
+    clips: 19,
+    badge: "Rising Star",
+    avatar: "/placeholder.svg?height=40&width=40",
+    rank: 4,
+  },
+];
 
 export const weeklyDigest: WeeklyDigestUser[] = [
-  { id: 1, name: "Sanya", views: 2847, engagement: "94%", avatar: "/placeholder.svg?height=40&width=40" },
-  { id: 2, name: "Vikram", views: 2103, engagement: "87%", avatar: "/placeholder.svg?height=40&width=40" },
-  { id: 3, name: "Neha", views: 1756, engagement: "82%", avatar: "/placeholder.svg?height=40&width=40" },
-]
+  {
+    id: 1,
+    name: "Sanya",
+    views: 2847,
+    engagement: "94%",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+  {
+    id: 2,
+    name: "Vikram",
+    views: 2103,
+    engagement: "87%",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+  {
+    id: 3,
+    name: "Neha",
+    views: 1756,
+    engagement: "82%",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+];
 
 export const achievements: Achievement[] = [
-  { id: 1, name: "ClipMaster", description: "Share 10+ clips", icon: Trophy, color: "text-yellow-400" },
-  { id: 2, name: "Trendsetter", description: "80%+ clan views", icon: TrendingUp, color: "text-[#ff6404]" },
-  { id: 3, name: "Clip Champ", description: "Weekly top sharer", icon: Crown, color: "text-purple-400" },
-  { id: 4, name: "Viral Creator", description: "1000+ views on clip", icon: Flame, color: "text-red-400" },
-]
+  {
+    id: 1,
+    name: "ClipMaster",
+    description: "Share 10+ clips",
+    icon: Trophy,
+    color: "text-yellow-400",
+  },
+  {
+    id: 2,
+    name: "Trendsetter",
+    description: "80%+ clan views",
+    icon: TrendingUp,
+    color: "text-[#ff6404]",
+  },
+  {
+    id: 3,
+    name: "Clip Champ",
+    description: "Weekly top sharer",
+    icon: Crown,
+    color: "text-purple-400",
+  },
+  {
+    id: 4,
+    name: "Viral Creator",
+    description: "1000+ views on clip",
+    icon: Flame,
+    color: "text-red-400",
+  },
+];
 
 export const notifications: Notification[] = [
   {
@@ -241,7 +406,7 @@ export const notifications: Notification[] = [
     campfire: "",
     isNew: true,
   },
-]
+];
 
 export const onlineFriends: Friend[] = [
   {
@@ -268,7 +433,7 @@ export const onlineFriends: Friend[] = [
     isOnline: true,
     currentShow: null,
   },
-]
+];
 
 export const allFriends: Friend[] = [
   ...onlineFriends,
@@ -296,12 +461,22 @@ export const allFriends: Friend[] = [
     isOnline: false,
     currentShow: null,
   },
-]
+];
 
 export const friendRequests: FriendRequest[] = [
-  { id: 1, name: "Vikram", mutualFriends: 3, avatar: "/placeholder.svg?height=50&width=50" },
-  { id: 2, name: "Neha", mutualFriends: 1, avatar: "/placeholder.svg?height=50&width=50" },
-]
+  {
+    id: 1,
+    name: "Vikram",
+    mutualFriends: 3,
+    avatar: "/placeholder.svg?height=50&width=50",
+  },
+  {
+    id: 2,
+    name: "Neha",
+    mutualFriends: 1,
+    avatar: "/placeholder.svg?height=50&width=50",
+  },
+];
 
 export const campfireChats: CampfireChat[] = [
   {
@@ -346,14 +521,17 @@ export const campfireChats: CampfireChat[] = [
         avatar: "/placeholder.svg?height=40&width=40",
         voiceData: {
           duration: "0:23",
-          waveform: [0.2, 0.5, 0.8, 0.3, 0.7, 0.4, 0.9, 0.1, 0.6, 0.8, 0.2, 0.5],
+          waveform: [
+            0.2, 0.5, 0.8, 0.3, 0.7, 0.4, 0.9, 0.1, 0.6, 0.8, 0.2, 0.5,
+          ],
         },
       },
       {
         id: 5,
         type: "text",
         sender: "Priya",
-        content: "That Breaking Bad scene gave me chills! Walter White is such a complex character 😱",
+        content:
+          "That Breaking Bad scene gave me chills! Walter White is such a complex character 😱",
         timestamp: "16 hours ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
@@ -387,7 +565,8 @@ export const campfireChats: CampfireChat[] = [
         id: 8,
         type: "text",
         sender: "Rahul",
-        content: "Can we watch The Office next? I need some comedy after all this drama 😂",
+        content:
+          "Can we watch The Office next? I need some comedy after all this drama 😂",
         timestamp: "6 hours ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
@@ -463,7 +642,9 @@ export const campfireChats: CampfireChat[] = [
         avatar: "/placeholder.svg?height=40&width=40",
         voiceData: {
           duration: "0:28",
-          waveform: [0.4, 0.7, 0.3, 0.8, 0.5, 0.9, 0.2, 0.6, 0.4, 0.8, 0.3, 0.7],
+          waveform: [
+            0.4, 0.7, 0.3, 0.8, 0.5, 0.9, 0.2, 0.6, 0.4, 0.8, 0.3, 0.7,
+          ],
         },
       },
     ],
@@ -511,7 +692,7 @@ export const campfireChats: CampfireChat[] = [
       },
     ],
   },
-]
+];
 
 export const friendChats: FriendChat[] = [
   {
@@ -542,7 +723,9 @@ export const friendChats: FriendChat[] = [
         avatar: "/placeholder.svg?height=40&width=40",
         voiceData: {
           duration: "0:18",
-          waveform: [0.3, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.9, 0.5, 0.2, 0.7, 0.4],
+          waveform: [
+            0.3, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.9, 0.5, 0.2, 0.7, 0.4,
+          ],
         },
       },
       {
@@ -672,7 +855,8 @@ export const friendChats: FriendChat[] = [
         id: 3,
         type: "text",
         sender: "Priya",
-        content: "We're thinking of a horror movie marathon - The Conjuring series!",
+        content:
+          "We're thinking of a horror movie marathon - The Conjuring series!",
         timestamp: "3 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
@@ -709,7 +893,8 @@ export const friendChats: FriendChat[] = [
         id: 3,
         type: "text",
         sender: "Karan",
-        content: "It's amazing! Very eye-opening. Let me know when you start it.",
+        content:
+          "It's amazing! Very eye-opening. Let me know when you start it.",
         timestamp: "6 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
@@ -756,4 +941,4 @@ export const friendChats: FriendChat[] = [
       },
     ],
   },
-]
+];

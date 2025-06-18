@@ -1,6 +1,6 @@
-import ContentRow from "../../components/ContentRow";
-import FeaturedBanner from "../../components/FeaturedBanner";
-import { topTVShows, featuredOriginals } from "../../lib/mockData";
+import ContentRow from "../components/ContentRow";
+import FeaturedBanner from "../components/FeaturedBanner";
+import { topTVShows, featuredOriginals } from "../lib/mockData";
 
 // TV Show-specific content
 const featuredTVShow = {

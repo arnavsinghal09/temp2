@@ -1,9 +1,9 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import ContentRow from "@/components/home/ContentRow"
-import LoadingSkeleton from "@/components/ui/LoadingSkeleton"
+import ContentRow from "../components/home/ContentRow"
+import LoadingSkeleton from "../components/ui/LoadingSkeleton"
 import { Bookmark, Heart, Clock, Trash2 } from "lucide-react"
-import type { ContentItem } from "@/lib/types"
+import type { ContentItem } from "../lib/types/index"
 
 export const metadata: Metadata = {
   title: "My Bookmarks - Your Saved Content",

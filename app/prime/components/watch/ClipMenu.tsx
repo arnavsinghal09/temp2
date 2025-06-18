@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import { X, Clock, Users, Share2, Check, Scissors, Sparkles, Smile, Mic } from "lucide-react"
 import Image from "next/image"
-import type { ClipOptions, DemoUser, ClipMenuStep } from "@/lib/types/clip"
-import { demoUsers } from "@/lib/data/demoUsers"
-import EmojiPicker from "@/components/ui/EmojiPicker"
-import VoiceRecorder from "@/components/ui/VoiceRecorder"
+import { ClipOptions,DemoUser,ClipMenuStep } from "../../lib/types/clip"
+import { demoUsers } from "../../lib/data/demoUsers"
+import EmojiPicker from "../ui/EmojiPicker"
+import VoiceRecorder from "../ui/VoiceRecorder"
 
 interface VoiceNote {
   blob: Blob

@@ -1,10 +1,10 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import ContentRow from "@/components/home/ContentRow"
-import FeaturedBanner from "@/components/home/FeaturedBanner"
-import LoadingSkeleton from "@/components/ui/LoadingSkeleton"
-import { featuredOriginals } from "@/lib/data/mockData"
-import type { FeaturedContent, ContentItem } from "@/lib/types"
+import ContentRow from "../components/home/ContentRow"
+import FeaturedBanner from "../components/home/FeaturedBanner"
+import LoadingSkeleton from "../components/ui/LoadingSkeleton"
+import { featuredOriginals } from "../lib/data/mockData"
+import type { FeaturedContent, ContentItem } from "../lib/types/index"
 
 export const metadata: Metadata = {
   title: "Prime Originals - Exclusive Content",

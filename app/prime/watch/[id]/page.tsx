@@ -5,8 +5,8 @@ import type React from "react"
 import { useRouter } from "next/navigation"
 import { Play, Pause, Volume2, Maximize, SkipBack, SkipForward, Settings, Subtitles, X } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
-import ClipButton from "@/components/watch/ClipButton"
-import { getContentById } from "@/lib/data/mockData"
+import ClipButton from "../../components/watch/ClipButton"
+import { getContentById } from "../../lib/data/mockData"
 
 interface WatchPageProps {
   params: {
@@ -22,7 +22,7 @@ export default function WatchPage({ params }: WatchPageProps) {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>()
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const content = getContentById(id)
 

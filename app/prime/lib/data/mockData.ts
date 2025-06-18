@@ -1,4 +1,4 @@
-import type { FeaturedContent, ContentItem } from "@/lib/types"
+import type {FeaturedContent, ContentItem} from "../types/index"
 
 export const featuredContent: FeaturedContent = {
   id: "featured-1",
@@ -35,7 +35,7 @@ export const featuredContentCarousel: FeaturedContent[] = [
       "Based on one of the greatest video game series of all time, Fallout is the story of haves and have-nots in a world in which there’s almost nothing left to have.",
     backgroundImage: "/placeholder.svg?height=800&width=1400&text=FALLOUT+Hero+Banner",
     episodeInfo: "Now Streaming",
-    newEpisodeInfo: null,
+    newEpisodeInfo: undefined,
     imdbRating: "8.6",
     year: 2024,
     rating: "TV-MA",
@@ -48,7 +48,7 @@ export const featuredContentCarousel: FeaturedContent[] = [
       "Two strangers give up their identities to become spies in an arranged marriage. But keeping their cover proves more difficult than their dangerous missions.",
     backgroundImage: "/placeholder.svg?height=800&width=1400&text=MR+%26+MRS+SMITH+Hero+Banner",
     episodeInfo: "Now Streaming",
-    newEpisodeInfo: null,
+    newEpisodeInfo: undefined,
     imdbRating: "7.2",
     year: 2024,
     rating: "TV-MA",

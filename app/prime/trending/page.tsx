@@ -1,10 +1,10 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import ContentRow from "@/components/home/ContentRow"
-import FeaturedBanner from "@/components/home/FeaturedBanner"
-import LoadingSkeleton from "@/components/ui/LoadingSkeleton"
-import { popularMovies, topTVShows } from "@/lib/data/mockData"
-import type { FeaturedContent, ContentItem } from "@/lib/types"
+import ContentRow from "../components/home/ContentRow"
+import FeaturedBanner from "../components/home/FeaturedBanner"
+import LoadingSkeleton from "../components/ui/LoadingSkeleton"
+import { popularMovies, topTVShows } from "../lib/data/mockData"
+import type { FeaturedContent, ContentItem } from "../lib/types"
 
 export const metadata: Metadata = {
   title: "Trending Now - Popular Content",

@@ -1,4 +1,4 @@
-import type { DemoUser } from "@/lib/types/clip"
+import type { DemoUser } from "../types/clip"
 
 export const demoUsers: DemoUser[] = [
   {

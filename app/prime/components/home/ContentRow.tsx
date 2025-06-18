@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Play, Plus, Star } from "lucide-react"
 import { useRef, useState } from "react"
-import type { ContentItem } from "@/lib/types"
+import type { ContentItem } from "../../lib/types/index"
 
 interface ContentRowProps {
   title: string
@@ -80,7 +80,7 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
         <div className="text-white text-2xl font-bold tracking-tight">{title}</div>
         {seeMoreLink && (
           <Link
-            href={seeMoreLink}
+            href={`/prime${seeMoreLink}`}
             className="text-[#00A8E1] hover:text-[#1FB6FF] text-sm font-semibold flex items-center group transition-all duration-300"
           >
             See more
@@ -146,7 +146,7 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
 
                   <div className="flex items-center space-x-2">
                     <Link
-                      href={`/watch/${item.id}`}
+                      href={`/prime/watch/${item.id}`}
                       className="flex items-center space-x-2 bg-white hover:bg-gray-200 text-black px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 hover:scale-105"
                     >
                       <Play className="w-4 h-4 fill-current" />

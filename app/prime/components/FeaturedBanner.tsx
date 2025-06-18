@@ -82,7 +82,7 @@ export default function FeaturedBanner({ content }: { content: FeaturedContent }
 
           <div className="flex items-center space-x-4 mb-8">
             <Link
-              href={`/watch/${content.id}`}
+              href={`/prime/watch/${content.id}`}
               className="group flex items-center space-x-4 bg-white hover:bg-gray-100 text-black px-10 py-4 rounded-xl font-bold text-lg transition-all duration-300 play-button shadow-lg hover:shadow-xl"
             >
               <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform duration-300" />

@@ -53,10 +53,12 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
   return (
     <div className="mb-12 content-row">
       <div className="flex items-center justify-between px-8 md:px-16 mb-6">
-        <h2 className="text-white text-2xl font-bold tracking-tight">{title}</h2>
+        <div className="text-white text-2xl font-bold tracking-tight">
+          {title}
+        </div>
         {seeMoreLink && (
           <Link
-            href={seeMoreLink}
+            href={`/prime${seeMoreLink}`}
             className="text-[#00A8E1] hover:text-[#1FB6FF] text-sm font-semibold flex items-center group transition-all duration-300"
           >
             See more
@@ -79,13 +81,21 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {items.map((item, index) => (
-            <div key={item.id} className="flex-shrink-0" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div
+              key={item.id}
+              className="flex-shrink-0"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div
                 className="relative w-[320px] aspect-[16/9] content-card group/item"
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                {item.badge && <div className={`badge ${getBadgeClass(item.badge)}`}>{item.badge}</div>}
+                {item.badge && (
+                  <div className={`badge ${getBadgeClass(item.badge)}`}>
+                    {item.badge}
+                  </div>
+                )}
 
                 <Image
                   src={item.thumbnail || "/placeholder.svg"}
@@ -96,10 +106,14 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
 
                 <div className="card-content">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-white font-bold text-lg leading-tight">{item.title}</h3>
+                    <div className="text-white font-bold text-lg leading-tight">
+                      {item.title}
+                    </div>
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-white text-sm font-semibold">{item.rating || "8.1"}</span>
+                      <span className="text-white text-sm font-semibold">
+                        {item.rating || "8.1"}
+                      </span>
                     </div>
                   </div>
 
@@ -113,7 +127,7 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
 
                   <div className="flex items-center space-x-2">
                     <Link
-                      href={`/watch/${item.id}`}
+                      href={`/prime/watch/${item.id}`}
                       className="flex items-center space-x-2 bg-white hover:bg-gray-200 text-black px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 hover:scale-105"
                     >
                       <Play className="w-4 h-4 fill-current" />
@@ -128,7 +142,9 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
                 {item.isPrime && (
                   <div className="prime-logo">
                     <div className="w-10 h-10 bg-gradient-to-r from-[#00A8E1] to-[#1FB6FF] rounded-lg flex items-center justify-center shadow-lg">
-                      <span className="text-white text-xs font-bold">prime</span>
+                      <span className="text-white text-xs font-bold">
+                        prime
+                      </span>
                     </div>
                   </div>
                 )}
@@ -145,5 +161,5 @@ export default function ContentRow({ title, items, seeMoreLink }: ContentRowProp
         </button>
       </div>
     </div>
-  )
+  );
 }

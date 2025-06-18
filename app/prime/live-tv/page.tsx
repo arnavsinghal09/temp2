@@ -1,4 +1,4 @@
-import ContentRow from "../../components/ContentRow";
+import ContentRow from "../components/ContentRow";
 import { Play, Calendar, Clock, Tv } from "lucide-react";
 import Link from "next/link";
 

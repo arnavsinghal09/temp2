@@ -11,6 +11,8 @@ export interface HeroContent {
 export interface StreamingService {
   id: number
   name: string
+  redirectUrl?: string
+  image?:string
   shortName: string
 }
 

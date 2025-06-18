@@ -18,8 +18,8 @@ export default function Header() {
   const pathname = usePathname()
 
   const isActive = (path: string) => {
-    if (path === "/" && pathname === "/") return true
-    if (path !== "/" && pathname.startsWith(path)) return true
+    if (path === "/primre" && pathname === "/prime") return true
+    if (path !== "/prime" && pathname.startsWith(path)) return true
     return false
   }
 
@@ -27,12 +27,14 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#0F171E]/95 via-[#0F171E]/90 to-transparent backdrop-blur-xl border-b border-white/5">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center space-x-8">
-          <Link href="/" className="flex items-center group">
+          <Link href="/prime" className="flex items-center group">
             <div className="flex items-center space-x-1">
               <span className="text-white font-bold text-xl tracking-tight group-hover:text-[#00A8E1] transition-colors">
                 prime
               </span>
-              <span className="text-white text-xl group-hover:text-[#00A8E1] transition-colors">video</span>
+              <span className="text-white text-xl group-hover:text-[#00A8E1] transition-colors">
+                video
+              </span>
             </div>
           </Link>
 
@@ -40,9 +42,11 @@ export default function Header() {
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={`/prime${item.href}`}
                 className={`font-medium px-4 py-2 rounded-xl uppercase text-sm tracking-wider transition-all duration-300 ${
-                  isActive(item.href) ? "text-white nav-active" : "text-white/70 hover:text-white hover:bg-white/5"
+                  isActive(item.href)
+                    ? "text-white nav-active"
+                    : "text-white/70 hover:text-white hover:bg-white/5"
                 }`}
               >
                 {item.label}
@@ -59,9 +63,11 @@ export default function Header() {
           </div>
 
           <Link
-            href="/subscriptions"
+            href="/prime/subscriptions"
             className={`hidden md:flex items-center text-sm font-medium uppercase tracking-wider transition-all duration-300 hover:bg-white/5 px-3 py-2 rounded-lg ${
-              isActive("/subscriptions") ? "text-white nav-active" : "text-white/70 hover:text-white"
+              isActive("/subscriptions")
+                ? "text-white nav-active"
+                : "text-white/70 hover:text-white"
             }`}
           >
             <Grid3X3 className="w-4 h-4 mr-2" />
@@ -77,7 +83,7 @@ export default function Header() {
           </button>
 
           <Link
-            href="/bookmarks"
+            href="/prime/bookmarks"
             className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300"
             aria-label="Watchlist"
           >
@@ -85,7 +91,7 @@ export default function Header() {
           </Link>
 
           <Link
-            href="/account"
+            href="/prime/account"
             className="bg-gradient-to-r from-[#00A8E1] to-[#1FB6FF] rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
             aria-label="Account"
           >
@@ -124,9 +130,11 @@ export default function Header() {
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={`/prime${item.href}`}
                 className={`block font-medium py-3 px-4 rounded-lg uppercase text-sm tracking-wider transition-all duration-300 ${
-                  isActive(item.href) ? "text-white bg-white/10" : "text-white/70 hover:text-white hover:bg-white/5"
+                  isActive(item.href)
+                    ? "text-white bg-white/10"
+                    : "text-white/70 hover:text-white hover:bg-white/5"
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -134,7 +142,7 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/subscriptions"
+              href="/prime/subscriptions"
               className={`block font-medium py-3 px-4 rounded-lg uppercase text-sm tracking-wider transition-all duration-300 ${
                 isActive("/subscriptions")
                   ? "text-white bg-white/10"
@@ -148,5 +156,5 @@ export default function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }
