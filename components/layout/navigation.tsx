@@ -175,6 +175,27 @@ export function NavigationBar({
                 setSelectedService(
                   selectedService === service.id ? null : service.id
                 );
+
+                // Special handling for Netflix - pass user data
+                if (service.redirectUrl === "/netflix") {
+                  if (currentUser) {
+                    const netflixUserData = {
+                      id: currentUser.id,
+                      name: currentUser.name,
+                      avatar: currentUser.avatar,
+                      email: currentUser.email,
+                    };
+                    localStorage.setItem(
+                      "netflix-user",
+                      JSON.stringify(netflixUserData)
+                    );
+                    console.log(
+                      "Passing user data to Netflix:",
+                      netflixUserData
+                    );
+                  }
+                }
+
                 router.push(service.redirectUrl || "/");
               }}
               className={cn(

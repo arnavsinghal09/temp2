@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, Bell, ChevronDown } from 'lucide-react';
-import { useAuthStore } from '../../lib/stores/auth';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Search, Bell, ChevronDown } from "lucide-react";
+import { useAuthStore } from "../../lib/stores/auth";
 
 export default function NetflixHeader() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
 
   // Handle scroll to change header background
@@ -18,91 +18,97 @@ export default function NetflixHeader() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/netflix/browse/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(
+        `/netflix/browse/search?q=${encodeURIComponent(searchQuery.trim())}`
+      );
       setShowSearch(false);
-      setSearchQuery('');
+      setSearchQuery("");
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    router.push('/auth/login');
+  const handleBackToFireStories = () => {
+    router.push("/");
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      isScrolled ? 'bg-black' : 'bg-gradient-to-b from-black/70 via-black/40 to-transparent'
-    }`}>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled
+          ? "bg-black"
+          : "bg-gradient-to-b from-black/70 via-black/40 to-transparent"
+      }`}
+    >
       <div className="flex items-center justify-between px-4 py-4 md:px-12">
         {/* Left side - Logo and Navigation */}
         <div className="flex items-center space-x-8">
-          {/* Netflix Logo - Changed to Image */}
-          <button 
-            onClick={() => router.push('/netflix/browse')}
+          {/* Netflix Logo */}
+          <button
+            onClick={() => router.push("/netflix/browse")}
             className="hover:opacity-80 transition-opacity"
           >
-            <img 
+            <img
               src="https://firestories.s3.ap-south-1.amazonaws.com/ott_icons/netflix_transparent.png"
               alt="Netflix"
               className="h-8 w-auto"
               onError={(e) => {
                 // Fallback to text if image fails to load
                 const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.insertAdjacentHTML('afterend', 
+                target.style.display = "none";
+                target.insertAdjacentHTML(
+                  "afterend",
                   '<span class="text-netflix-red text-3xl font-black tracking-tight" style="font-family: Netflix Sans, Helvetica Neue, Helvetica, Arial, sans-serif; letter-spacing: -0.5px;">NETFLIX</span>'
                 );
               }}
             />
           </button>
-          
+
           {/* Navigation Menu - Exact Netflix layout */}
           <nav className="hidden md:flex space-x-5 text-sm font-medium">
-            <button 
-              onClick={() => router.push('/netflix/browse')}
+            <button
+              onClick={() => router.push("/netflix/browse")}
               className="text-white hover:text-gray-300 transition-colors"
             >
               Home
             </button>
-            <button 
-              onClick={() => router.push('/netflix/browse/genre/series')}
+            <button
+              onClick={() => router.push("/netflix/browse/genre/series")}
               className="text-gray-300 hover:text-white transition-colors"
             >
               TV Shows
             </button>
-            <button 
-              onClick={() => router.push('/netflix/browse/genre/movies')}
+            <button
+              onClick={() => router.push("/netflix/browse/genre/movies")}
               className="text-gray-300 hover:text-white transition-colors"
             >
               Movies
             </button>
-            <button 
-              onClick={() => router.push('/netflix/browse/games')}
+            <button
+              onClick={() => router.push("/netflix/browse/games")}
               className="text-gray-300 hover:text-white transition-colors"
             >
-              Games/netflix
+              Games
             </button>
-            <button 
-              onClick={() => router.push('/netflix/browse/new')}
+            <button
+              onClick={() => router.push("/netflix/browse/new")}
               className="text-gray-300 hover:text-white transition-colors"
             >
               New & Popular
             </button>
-            <button 
-              onClick={() => router.push('/netflix/browse/my-list')}
+            <button
+              onClick={() => router.push("/netflix/browse/my-list")}
               className="text-gray-300 hover:text-white transition-colors"
             >
               My List
             </button>
-            <button 
-              onClick={() => router.push('/netflix/browse/languages')}
+            <button
+              onClick={() => router.push("/netflix/browse/languages")}
               className="text-gray-300 hover:text-white transition-colors"
             >
               Browse by Languages
@@ -132,7 +138,7 @@ export default function NetflixHeader() {
                 </div>
               </form>
             ) : (
-              <button 
+              <button
                 onClick={() => setShowSearch(true)}
                 className="p-2 hover:text-gray-300 transition-colors"
               >
@@ -142,8 +148,8 @@ export default function NetflixHeader() {
           </div>
 
           {/* Children */}
-          <button 
-            onClick={() => router.push('/netflix/browse/kids')}
+          <button
+            onClick={() => router.push("/netflix/browse/kids")}
             className="text-white hover:text-gray-300 transition-colors text-sm font-medium hidden md:block"
           >
             Children
@@ -157,81 +163,24 @@ export default function NetflixHeader() {
             </span>
           </button>
 
-          {/* Profile Menu */}
-          <div className="relative">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-2 hover:text-gray-300 transition-colors"
-              onBlur={() => setTimeout(() => setShowProfileMenu(false), 150)}
-            >
-              <img 
-                src={user?.avatar || '/api/placeholder/32/32'}
-                alt="Profile"
-                className="h-8 w-8 rounded object-cover"
-              />
-              <ChevronDown className={`h-4 w-4 text-white transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
-            </button>
+          {/* Back to FireStories Button */}
+          <button
+            onClick={handleBackToFireStories}
+            className="bg-gray-600 bg-opacity-70 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-opacity-60 transition-colors"
+          >
+            Back to FireStories
+          </button>
 
-            {/* Profile Dropdown */}
-            {showProfileMenu && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-black/95 backdrop-blur-sm border border-gray-700 rounded shadow-2xl">
-                {/* Profile Header */}
-                <div className="p-4 border-b border-gray-700">
-                  <div className="flex items-center space-x-3">
-                    <img 
-                      src={user?.avatar || '/api/placeholder/32/32'}
-                      alt="Profile"
-                      className="h-8 w-8 rounded object-cover"
-                    />
-                    <div>
-                      <p className="text-white font-medium text-sm">{user?.name || 'User'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Menu Items */}
-                <div className="py-1">
-                  <button 
-                    onClick={() => {
-                      router.push('/netflix/friends');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors text-sm"
-                  >
-                    Friends & Clips
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      router.push('/netflix/account');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors text-sm"
-                  >
-                    Account
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      router.push('/netflix/help');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors text-sm"
-                  >
-                    Help Center
-                  </button>
-                </div>
-                
-                <div className="border-t border-gray-700 py-1">
-                  <button 
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors text-sm"
-                  >
-                    Sign out of Netflix
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* Simple Profile Display */}
+          <div className="flex items-center space-x-2">
+            <img
+              src={user?.avatar || "/api/placeholder/32/32"}
+              alt="Profile"
+              className="h-8 w-8 rounded object-cover"
+            />
+            <span className="text-white text-sm font-medium hidden md:inline">
+              {user?.name || "User"}
+            </span>
           </div>
         </div>
       </div>
@@ -239,32 +188,32 @@ export default function NetflixHeader() {
       {/* Mobile Navigation */}
       <div className="md:hidden px-4 pb-2 border-t border-gray-800/50">
         <nav className="flex space-x-4 text-sm overflow-x-auto py-2">
-          <button 
-            onClick={() => router.push('/netflix/browse')}
+          <button
+            onClick={() => router.push("/netflix/browse")}
             className="text-white whitespace-nowrap"
           >
             Home
           </button>
-          <button 
-            onClick={() => router.push('/netflix/browse/genre/series')}
+          <button
+            onClick={() => router.push("/netflix/browse/genre/series")}
             className="text-gray-300 whitespace-nowrap"
           >
             TV Shows
           </button>
-          <button 
-            onClick={() => router.push('/netflix/browse/genre/movies')}
+          <button
+            onClick={() => router.push("/netflix/browse/genre/movies")}
             className="text-gray-300 whitespace-nowrap"
           >
             Movies
           </button>
-          <button 
-            onClick={() => router.push('/netflix/browse/games')}
+          <button
+            onClick={() => router.push("/netflix/browse/games")}
             className="text-gray-300 whitespace-nowrap"
           >
             Games
           </button>
-          <button 
-            onClick={() => router.push('/netflix/browse/new')}
+          <button
+            onClick={() => router.push("/netflix/browse/new")}
             className="text-gray-300 whitespace-nowrap"
           >
             New & Popular

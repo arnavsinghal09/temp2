@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useParams } from 'next/navigation';
-import { useAuthStore } from '../../lib/stores/auth';
-import NetflixHeader from '../../components/netflix/Header';
-import { getContentById, DEMO_CONTENT } from '../../lib/data/content';
-import { Play, Plus, ThumbsUp, Share2, Clock, Star, ArrowLeft } from 'lucide-react';
-import type { Content } from '../../lib/data/content';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import NetflixHeader from "../../components/netflix/Header";
+import { getContentById, DEMO_CONTENT } from "../../lib/data/content";
+import {
+  Play,
+  Plus,
+  ThumbsUp,
+  Share2,
+  Clock,
+  Star,
+  ArrowLeft,
+} from "lucide-react";
+import type { Content } from "../../lib/data/content";
 
 export default function ContentDetailsPage() {
   const router = useRouter();
   const params = useParams();
-  const { isLoggedIn } = useAuthStore();
   const [content, setContent] = useState<Content | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,33 +26,28 @@ export default function ContentDetailsPage() {
   const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.push('/netflix/auth/login');
-      return;
-    }
-
     const contentId = params.id as string;
     if (!contentId) {
-      setError('Invalid content ID');
+      setError("Invalid content ID");
       setIsLoading(false);
       return;
     }
 
     const foundContent = getContentById(contentId);
     if (!foundContent) {
-      setError('Content not found');
+      setError("Content not found");
       setIsLoading(false);
       return;
     }
 
     setContent(foundContent);
     setIsLoading(false);
-  }, [params.id, isLoggedIn, router]);
+  }, [params.id]);
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -61,24 +62,21 @@ export default function ContentDetailsPage() {
 
   const handleSave = () => {
     setIsSaved(!isSaved);
-    // Here you would typically save to user's list
-    console.log(isSaved ? 'Removed from list' : 'Added to list');
+    console.log(isSaved ? "Removed from list" : "Added to list");
   };
 
   const handleLike = () => {
     setIsLiked(!isLiked);
-    // Here you would typically save preference
-    console.log(isLiked ? 'Unliked' : 'Liked');
+    console.log(isLiked ? "Unliked" : "Liked");
   };
 
   const getSimilarContent = () => {
     if (!content) return [];
-    return DEMO_CONTENT
-      .filter(item => 
-        item.id !== content.id && 
-        item.genre.some(g => content.genre.includes(g))
-      )
-      .slice(0, 6);
+    return DEMO_CONTENT.filter(
+      (item) =>
+        item.id !== content.id &&
+        item.genre.some((g) => content.genre.includes(g))
+    ).slice(0, 6);
   };
 
   if (isLoading) {
@@ -98,13 +96,13 @@ export default function ContentDetailsPage() {
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">😕</div>
           <h1 className="text-2xl font-bold text-white mb-4">
-            {error || 'Content Not Found'}
+            {error || "Content Not Found"}
           </h1>
           <p className="text-gray-400 mb-6">
             Sorry, we couldn&apos;t find the content you&apos;re looking for.
           </p>
           <button
-            onClick={() => router.push('/netflix/browse')}
+            onClick={() => router.push("/netflix/browse")}
             className="bg-netflix-red hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             Back to Browse
@@ -119,10 +117,10 @@ export default function ContentDetailsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <NetflixHeader />
-      
+
       {/* Hero Section */}
       <div className="relative h-screen">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${content.backdropImage})`,
@@ -147,7 +145,7 @@ export default function ContentDetailsPage() {
             {/* Type badge */}
             <div className="mb-4">
               <span className="bg-netflix-red text-white text-sm font-bold px-3 py-1 rounded">
-                {content.type === 'movie' ? 'MOVIE' : 'SERIES'}
+                {content.type === "movie" ? "MOVIE" : "SERIES"}
               </span>
             </div>
 
@@ -175,8 +173,8 @@ export default function ContentDetailsPage() {
             {/* Genres */}
             <div className="flex flex-wrap gap-2 mb-6">
               {content.genre.map((genre) => (
-                <span 
-                  key={genre} 
+                <span
+                  key={genre}
                   className="bg-gray-800/80 text-gray-200 px-3 py-1 rounded-full text-sm"
                 >
                   {genre}
@@ -191,7 +189,7 @@ export default function ContentDetailsPage() {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-4 mb-8">
-              <button 
+              <button
                 onClick={handlePlay}
                 className="bg-white text-black font-bold py-3 px-8 rounded hover:bg-gray-200 transition-colors flex items-center space-x-2 text-lg"
               >
@@ -199,29 +197,31 @@ export default function ContentDetailsPage() {
                 <span>Play</span>
               </button>
 
-              <button 
+              <button
                 onClick={handleSave}
                 className={`border-2 font-bold py-3 px-6 rounded transition-colors flex items-center space-x-2 ${
-                  isSaved 
-                    ? 'border-netflix-red bg-netflix-red text-white' 
-                    : 'border-gray-400 text-white hover:border-white'
+                  isSaved
+                    ? "border-netflix-red bg-netflix-red text-white"
+                    : "border-gray-400 text-white hover:border-white"
                 }`}
               >
                 <Plus className="h-5 w-5" />
-                <span>{isSaved ? 'Saved' : 'Save for Later'}</span>
+                <span>{isSaved ? "Saved" : "Save for Later"}</span>
               </button>
 
-              <button 
+              <button
                 onClick={handleLike}
                 className={`border-2 border-gray-400 hover:border-white p-3 rounded transition-colors ${
-                  isLiked ? 'text-netflix-red' : 'text-white'
+                  isLiked ? "text-netflix-red" : "text-white"
                 }`}
-                title={isLiked ? 'Unlike' : 'Like'}
+                title={isLiked ? "Unlike" : "Like"}
               >
-                <ThumbsUp className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                <ThumbsUp
+                  className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`}
+                />
               </button>
 
-              <button 
+              <button
                 className="border-2 border-gray-400 hover:border-white text-white p-3 rounded transition-colors"
                 title="Share"
               >
@@ -233,8 +233,8 @@ export default function ContentDetailsPage() {
             {content.cast.length > 0 && (
               <div className="text-gray-300">
                 <span className="text-gray-400">Starring: </span>
-                {content.cast.slice(0, 4).join(', ')}
-                {content.cast.length > 4 && ', and more'}
+                {content.cast.slice(0, 4).join(", ")}
+                {content.cast.length > 4 && ", and more"}
               </div>
             )}
 
@@ -253,21 +253,24 @@ export default function ContentDetailsPage() {
           <h2 className="text-2xl font-bold mb-8">More Like This</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {similarContent.map((item) => (
-              <div 
+              <div
                 key={item.id}
                 className="cursor-pointer group"
                 onClick={() => router.push(`/netflix/content/${item.id}`)}
               >
-                <img 
+                <img
                   src={item.thumbnail}
                   alt={item.title}
                   className="w-full h-32 object-cover rounded group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/400x225/374151/9CA3AF?text=No+Image';
+                    target.src =
+                      "https://via.placeholder.com/400x225/374151/9CA3AF?text=No+Image";
                   }}
                 />
-                <h3 className="text-sm font-medium mt-2 line-clamp-2">{item.title}</h3>
+                <h3 className="text-sm font-medium mt-2 line-clamp-2">
+                  {item.title}
+                </h3>
                 <p className="text-xs text-gray-400 mt-1">{item.year}</p>
               </div>
             ))}
