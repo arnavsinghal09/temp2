@@ -5,7 +5,7 @@ export const featuredContent: FeaturedContent = {
   title: "THE TRAITORS",
   description:
     "Season 1 · Welcome to The Traitors — a ruthless reality show hosted by Karan Johar, where 20 celebrities betray and deceive each other for a chance to win a massive cash prize. Trust no one.",
-  backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+TRAITORS+Hero+Banner",
+  backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
   episodeInfo: "NEW EPISODES THURSDAY 8 PM",
   newEpisodeInfo: "New episode Thursday",
   imdbRating: "8.2",
@@ -20,7 +20,7 @@ export const featuredContentCarousel: FeaturedContent[] = [
     title: "THE TRAITORS",
     description:
       "Season 1 · Welcome to The Traitors — a ruthless reality show hosted by Karan Johar, where 20 celebrities betray and deceive each other for a chance to win a massive cash prize. Trust no one.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+TRAITORS+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     episodeInfo: "NEW EPISODES THURSDAY 8 PM",
     newEpisodeInfo: "New episode Thursday",
     imdbRating: "8.2",
@@ -33,7 +33,7 @@ export const featuredContentCarousel: FeaturedContent[] = [
     title: "FALLOUT",
     description:
       "Based on one of the greatest video game series of all time, Fallout is the story of haves and have-nots in a world in which there’s almost nothing left to have.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=FALLOUT+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     episodeInfo: "Now Streaming",
     newEpisodeInfo: undefined,
     imdbRating: "8.6",
@@ -46,7 +46,7 @@ export const featuredContentCarousel: FeaturedContent[] = [
     title: "MR. & MRS. SMITH",
     description:
       "Two strangers give up their identities to become spies in an arranged marriage. But keeping their cover proves more difficult than their dangerous missions.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=MR+%26+MRS+SMITH+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/mr+ans+mrs+smith.jpg",
     episodeInfo: "Now Streaming",
     newEpisodeInfo: undefined,
     imdbRating: "7.2",
@@ -60,7 +60,7 @@ export const featuredOriginals: ContentItem[] = [
   {
     id: "original-1",
     title: "THE TRAITORS",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=THE+TRAITORS",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     badge: "TOP 10",
     isPrime: true,
     year: 2024,
@@ -70,8 +70,8 @@ export const featuredOriginals: ContentItem[] = [
   },
   {
     id: "original-2",
-    title: "ROMCON",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=ROMCON",
+    title: "Citadel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/citadel.jpeg",
     badge: "NEW SERIES",
     isPrime: true,
     year: 2024,
@@ -81,8 +81,8 @@ export const featuredOriginals: ContentItem[] = [
   },
   {
     id: "original-3",
-    title: "in transit",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=in+transit",
+    title: "The Wheel of Time",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+wheelc+of+time.jpeg",
     badge: "NEW SERIES",
     isPrime: true,
     year: 2024,
@@ -92,8 +92,8 @@ export const featuredOriginals: ContentItem[] = [
   },
   {
     id: "original-4",
-    title: "CLARKSON'S FARM",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=CLARKSON'S+FARM",
+    title: "Mission Impossible 4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+4.jpg",
     badge: "NEW SEASON",
     isPrime: true,
     year: 2024,
@@ -103,8 +103,8 @@ export const featuredOriginals: ContentItem[] = [
   },
   {
     id: "original-5",
-    title: "MOTORHEADS",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=MOTORHEADS",
+    title: "Reacher",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/reacher.jpg",
     badge: "NEW SERIES",
     isPrime: true,
     year: 2024,
@@ -118,7 +118,7 @@ export const recentlyAdded: ContentItem[] = [
   {
     id: "recent-1",
     title: "The Bear",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Bear",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+bear.jpeg",
     isPrime: true,
     year: 2024,
     duration: "30m",
@@ -128,7 +128,7 @@ export const recentlyAdded: ContentItem[] = [
   {
     id: "recent-2",
     title: "Fallout",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Fallout",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     isPrime: true,
     year: 2024,
     duration: "1h 5m",
@@ -138,7 +138,7 @@ export const recentlyAdded: ContentItem[] = [
   {
     id: "recent-3",
     title: "Mr. & Mrs. Smith",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mr+Mrs+Smith",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/mr+ans+mrs+smith.jpg",
     isPrime: true,
     year: 2024,
     duration: "55m",
@@ -148,7 +148,7 @@ export const recentlyAdded: ContentItem[] = [
   {
     id: "recent-4",
     title: "The Power",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Power",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+power.webp",
     isPrime: true,
     year: 2024,
     duration: "58m",
@@ -157,8 +157,8 @@ export const recentlyAdded: ContentItem[] = [
   },
   {
     id: "recent-5",
-    title: "Air",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Air+Movie",
+    title: "Mission Impossible 6",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+6.jpg",
     isPrime: true,
     year: 2023,
     duration: "1h 51m",
@@ -171,7 +171,7 @@ export const popularMovies: ContentItem[] = [
   {
     id: "movie-1",
     title: "The Tomorrow War",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Tomorrow+War",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
     badge: "TOP 10",
     isPrime: true,
     year: 2021,
@@ -182,7 +182,7 @@ export const popularMovies: ContentItem[] = [
   {
     id: "movie-2",
     title: "Sound of Metal",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Sound+of+Metal",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/sound+of+metal.jpg",
     isPrime: true,
     year: 2020,
     duration: "2h 0m",
@@ -192,7 +192,7 @@ export const popularMovies: ContentItem[] = [
   {
     id: "movie-3",
     title: "Coming 2 America",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Coming+2+America",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/coming+2+america.jpeg",
     isPrime: true,
     year: 2021,
     duration: "1h 50m",
@@ -201,8 +201,8 @@ export const popularMovies: ContentItem[] = [
   },
   {
     id: "movie-4",
-    title: "The Power of the Dog",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Power+of+Dog",
+    title: "The Power",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+power.webp",
     isPrime: true,
     year: 2021,
     duration: "2h 8m",
@@ -211,8 +211,8 @@ export const popularMovies: ContentItem[] = [
   },
   {
     id: "movie-5",
-    title: "Being the Ricardos",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Being+Ricardos",
+    title: "Citadel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/citadel.jpeg",
     isPrime: true,
     year: 2021,
     duration: "2h 11m",
@@ -225,7 +225,7 @@ export const topTVShows: ContentItem[] = [
   {
     id: "tv-1",
     title: "The Boys",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Boys",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     badge: "TOP 10",
     isPrime: true,
     year: 2024,
@@ -236,7 +236,7 @@ export const topTVShows: ContentItem[] = [
   {
     id: "tv-2",
     title: "The Marvelous Mrs. Maisel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mrs+Maisel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+marvelous+show.jpeg",
     isPrime: true,
     year: 2023,
     duration: "52m",
@@ -246,7 +246,7 @@ export const topTVShows: ContentItem[] = [
   {
     id: "tv-3",
     title: "Jack Ryan",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Jack+Ryan",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Jack+Ryan.png",
     isPrime: true,
     year: 2023,
     duration: "1h 8m",
@@ -256,7 +256,7 @@ export const topTVShows: ContentItem[] = [
   {
     id: "tv-4",
     title: "The Wheel of Time",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Wheel+of+Time",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+wheelc+of+time.jpeg",
     isPrime: true,
     year: 2023,
     duration: "1h 5m",
@@ -266,7 +266,7 @@ export const topTVShows: ContentItem[] = [
   {
     id: "tv-5",
     title: "Citadel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Citadel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/citadel.jpeg",
     isPrime: true,
     year: 2023,
     duration: "58m",
@@ -283,7 +283,7 @@ export const getContentById = (id: string): ContentItem | FeaturedContent => {
       title: "Sample Content",
       description:
         "This is a sample description for the content. In a real application, this would be fetched from a database or API with detailed plot information and cast details.",
-      thumbnail: "/placeholder.svg?height=315&width=560&text=Sample+Content",
+      thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Jack+Ryan.png",
       year: 2024,
       duration: "1h 30m",
       genre: "Drama, Thriller",
@@ -296,7 +296,7 @@ export const recommendedContent: ContentItem[] = [
   {
     id: "rec-1",
     title: "Similar Show 1",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+1",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+5.jpg",
     isPrime: true,
     year: 2024,
     duration: "45m",
@@ -306,7 +306,7 @@ export const recommendedContent: ContentItem[] = [
   {
     id: "rec-2",
     title: "Similar Show 2",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+2",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/reacher.jpg",
     isPrime: true,
     year: 2023,
     duration: "1h 2m",
@@ -316,7 +316,7 @@ export const recommendedContent: ContentItem[] = [
   {
     id: "rec-3",
     title: "Similar Show 3",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+3",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     isPrime: true,
     year: 2024,
     duration: "38m",
@@ -326,7 +326,7 @@ export const recommendedContent: ContentItem[] = [
   {
     id: "rec-4",
     title: "Similar Show 4",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+6.jpg",
     isPrime: true,
     year: 2024,
     duration: "52m",

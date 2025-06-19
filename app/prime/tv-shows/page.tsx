@@ -1,221 +1,232 @@
-import ContentRow from "../components/ContentRow";
-import FeaturedBanner from "../components/FeaturedBanner";
-import { topTVShows, featuredOriginals } from "../lib/mockData";
+import { Suspense } from "react"
+import type { Metadata } from "next"
+import ContentRow from "../components/home/ContentRow"
+import FeaturedBanner from "../components/home/FeaturedBanner"
+import LoadingSkeleton from "../components/ui/LoadingSkeleton"
+import {recentlyAdded, topTVShows} from "../lib/data/mockData"
+import type { FeaturedContent } from "../lib/types/index"
+import type { ContentItem } from "../lib/types/index"
 
-// TV Show-specific content
-const featuredTVShow = {
-  id: "featured-tv-1",
-  title: "THE BOYS",
+export const metadata: Metadata = {
+  title: "Tv Shows - Stream Latest Seires",
+  description: "Discover the latest movies, blockbusters, and award-winning films on PrimeClone",
+}
+
+// Movie-specific content
+const featuredMovie: FeaturedContent = {
+  id: "featured-movie-1",
+  title: "Reacher",
   description:
-    "Season 4 · A group of vigilantes set out to take down corrupt superheroes who abuse their superpowers. This dark, satirical take on the superhero genre pushes boundaries with its brutal action and sharp social commentary.",
-  backgroundImage:
-    "/placeholder.svg?height=800&width=1400&text=THE+BOYS+Season+4",
-  episodeInfo: "NEW SEASON AVAILABLE",
-  newEpisodeInfo: "Season 4 Now Streaming",
-  imdbRating: "8.7",
-  year: 2024,
-  rating: "TV-MA",
-  duration: "8 episodes",
-};
+    "A family man is drafted to fight in a future war where the fate of humanity relies on his ability to confront the past. Starring Chris Pratt in this action-packed sci-fi thriller that will keep you on the edge of your seat.",
+  backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/reacher.jpg",
+  episodeInfo: "AVAILABLE NOW",
+  newEpisodeInfo: "New on Prime",
+  imdbRating: "6.5",
+  year: 2021,
+  rating: "PG-13",
+  duration: "2h 18m",
+}
 
-const crimeShows = [
+const actionMovies: ContentItem[] = [
+  
+  
   {
-    id: "crime-1",
-    title: "Reacher",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Reacher+Series",
-    badge: "TOP 10",
-    isPrime: true,
-    year: 2024,
-    duration: "1h 5m",
-    rating: "8.1",
-    genre: "Crime",
-  },
-  {
-    id: "crime-2",
-    title: "Bosch",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Bosch+Detective",
-    isPrime: true,
-    year: 2023,
-    duration: "45m",
-    rating: "8.5",
-    genre: "Crime",
-  },
-  {
-    id: "crime-3",
-    title: "The Terminal List",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Terminal+List",
-    badge: "NEW SERIES",
-    isPrime: true,
-    year: 2022,
-    duration: "1h 0m",
-    rating: "7.9",
-    genre: "Crime",
-  },
-  {
-    id: "crime-4",
-    title: "Goliath",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Goliath+Legal",
-    isPrime: true,
-    year: 2021,
-    duration: "55m",
-    rating: "8.2",
-    genre: "Crime",
-  },
-  {
-    id: "crime-5",
-    title: "Sneaky Pete",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Sneaky+Pete",
-    isPrime: true,
-    year: 2019,
-    duration: "50m",
-    rating: "8.2",
-    genre: "Crime",
-  },
-];
-
-const sciFiShows = [
-  {
-    id: "scifi-1",
+    id: "action-5",
     title: "Fallout",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Fallout+Series",
-    badge: "NEW SERIES",
-    isPrime: true,
-    year: 2024,
-    duration: "1h 5m",
-    rating: "8.4",
-    genre: "Sci-Fi",
-  },
-  {
-    id: "scifi-2",
-    title: "The Expanse",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Expanse",
-    badge: "AWARD WINNER",
-    isPrime: true,
-    year: 2021,
-    duration: "1h 0m",
-    rating: "8.5",
-    genre: "Sci-Fi",
-  },
-  {
-    id: "scifi-3",
-    title: "Tales from the Loop",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Tales+Loop",
-    isPrime: true,
-    year: 2020,
-    duration: "55m",
-    rating: "7.4",
-    genre: "Sci-Fi",
-  },
-  {
-    id: "scifi-4",
-    title: "Upload",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Upload+Comedy",
-    badge: "TOP 10",
-    isPrime: true,
-    year: 2022,
-    duration: "30m",
-    rating: "7.8",
-    genre: "Sci-Fi",
-  },
-  {
-    id: "scifi-5",
-    title: "Undone",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Undone+Series",
-    isPrime: true,
-    year: 2021,
-    duration: "25m",
-    rating: "7.6",
-    genre: "Sci-Fi",
-  },
-];
-
-const comedyShows = [
-  {
-    id: "comedy-tv-1",
-    title: "The Marvelous Mrs. Maisel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mrs+Maisel",
-    badge: "AWARD WINNER",
-    isPrime: true,
-    year: 2023,
-    duration: "52m",
-    rating: "8.7",
-    genre: "Comedy",
-  },
-  {
-    id: "comedy-tv-2",
-    title: "Fleabag",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Fleabag+Comedy",
-    badge: "AWARD WINNER",
-    isPrime: true,
-    year: 2019,
-    duration: "30m",
-    rating: "8.7",
-    genre: "Comedy",
-  },
-  {
-    id: "comedy-tv-3",
-    title: "The Tick",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Tick",
-    isPrime: true,
-    year: 2019,
-    duration: "30m",
-    rating: "7.4",
-    genre: "Comedy",
-  },
-  {
-    id: "comedy-tv-4",
-    title: "Red Oaks",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Red+Oaks",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     isPrime: true,
     year: 2017,
-    duration: "30m",
+    duration: "1h 55m",
+    rating: "6.7",
+    genre: "Action",
+  },
+  {
+    id: "action-3",
+    title: "Mission Impossible 4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+4.jpg",
+    badge: "TOP 10",
+    isPrime: true,
+    year: 2014,
+    duration: "1h 41m",
+    rating: "7.4",
+    genre: "Action",
+  },
+  {
+    id: "action-1",
+    title: "Reacher",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/reacher.jpg",
+    badge: "TOP 10",
+    isPrime: true,
+    year: 2021,
+    duration: "1h 32m",
+    rating: "7.4",
+    genre: "Action",
+  },
+  {
+    id: "action-4",
+    title: "Sound of Metal",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/sound+of+metal.jpg",
+    isPrime: true,
+    year: 2015,
+    duration: "2h 0m",
+    rating: "8.1",
+    genre: "Action",
+  },
+  {
+    id: "action-2",
+    title: "The Boys",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
+    isPrime: true,
+    year: 2016,
+    duration: "2h 8m",
+    rating: "7.3",
+    genre: "Action",
+  },
+  
+]
+
+const comedyMovies: ContentItem[] = [
+  
+  {
+    id: "comedy-2",
+    title: "The Final Destination",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+4.jpg",
+    isPrime: true,
+    year: 2014,
+    duration: "1h 39m",
+    rating: "8.1",
+    genre: "Comedy",
+  },
+  {
+    id: "comedy-1",
+    title: "Coming 2 America",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/coming+2+america.jpeg",
+    badge: "NEW",
+    isPrime: true,
+    year: 2021,
+    duration: "1h 50m",
+    rating: "5.3",
+    genre: "Comedy",
+  },
+  {
+    id: "comedy-5",
+    title: "Citadel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/citadel.jpeg",
+    isPrime: true,
+    year: 2016,
+    duration: "1h 56m",
+    rating: "7.4",
+    genre: "Comedy",
+  },
+  {
+    id: "comedy-3",
+    title: "The Power",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+power.webp",
+    badge: "TOP 10",
+    isPrime: true,
+    year: 2019,
+    duration: "2h 10m",
     rating: "7.9",
     genre: "Comedy",
   },
   {
-    id: "comedy-tv-5",
-    title: "Catastrophe",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Catastrophe",
+    id: "comedy-4",
+    title: "Traitors",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     isPrime: true,
-    year: 2019,
-    duration: "25m",
-    rating: "8.2",
+    year: 2020,
+    duration: "1h 30m",
+    rating: "7.4",
     genre: "Comedy",
   },
-];
+  
+]
 
-export default function TVShowsPage() {
+const dramaMovies: ContentItem[] = [
+  {
+    id: "drama-2",
+    title: "Final Destination 2",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+2.jpg",
+    badge: "AWARD WINNER",
+    isPrime: true,
+    year: 2021,
+    duration: "2h 8m",
+    rating: "6.8",
+    genre: "Drama",
+  },
+  {
+    id: "drama-1",
+    title: "Being The Ricardos",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/being+the+ricardos.jpg",
+    isPrime: true,
+    year: 2016,
+    duration: "2h 17m",
+    rating: "7.8",
+    genre: "Drama",
+  },
+  
+  {
+    id: "drama-3",
+    title: "Final Destination 4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+4.jpg",
+    badge: "AWARD WINNER",
+    isPrime: true,
+    year: 2020,
+    duration: "2h 0m",
+    rating: "7.7",
+    genre: "Drama",
+  },
+    {
+    id: "drama-5",
+    title: "The Tomorrow War",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
+    isPrime: true,
+    year: 2017,
+    duration: "1h 34m",
+    rating: "7.4",
+    genre: "Drama",
+  },
+  {
+    id: "drama-4",
+    title: "The bear",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+bear.jpeg",
+    isPrime: true,
+    year: 2016,
+    duration: "1h 51m",
+    rating: "7.4",
+    genre: "Drama",
+  },
+
+]
+
+export default function MoviesPage() {
   return (
-    <main className="min-h-screen bg-[#0F171E] pt-20 page-transition">
-      <FeaturedBanner content={featuredTVShow} />
+    <div className="pt-20 page-transition">
+      <Suspense fallback={<LoadingSkeleton type="hero" />}>
+        <FeaturedBanner content={featuredMovie} />
+      </Suspense>
 
       <div className="py-12 space-y-12">
-        <ContentRow
-          title="Prime Originals"
-          items={featuredOriginals}
-          seeMoreLink="/tv-shows/originals"
-        />
-        <ContentRow
-          title="Popular TV Shows"
-          items={topTVShows}
-          seeMoreLink="/tv-shows/popular"
-        />
-        <ContentRow
-          title="Crime & Thriller"
-          items={crimeShows}
-          seeMoreLink="/tv-shows/crime"
-        />
-        <ContentRow
-          title="Sci-Fi & Fantasy"
-          items={sciFiShows}
-          seeMoreLink="/tv-shows/scifi"
-        />
-        <ContentRow
-          title="Comedy Series"
-          items={comedyShows}
-          seeMoreLink="/tv-shows/comedy"
-        />
+        <Suspense fallback={<LoadingSkeleton type="row" />}>
+          <ContentRow title="Popular Series" items={topTVShows} seeMoreLink="#" />
+        </Suspense>
+
+        <Suspense fallback={<LoadingSkeleton type="row" />}>
+          <ContentRow title="Action Series" items={actionMovies} seeMoreLink="#" />
+        </Suspense>
+
+        <Suspense fallback={<LoadingSkeleton type="row" />}>
+          <ContentRow title="Comedy Series" items={comedyMovies} seeMoreLink="#" />
+        </Suspense>
+
+        <Suspense fallback={<LoadingSkeleton type="row" />}>
+          <ContentRow title="Award-Winning Dramas" items={dramaMovies} seeMoreLink="#" />
+        </Suspense>
+
+        <Suspense fallback={<LoadingSkeleton type="row" />}>
+          <ContentRow title="Recently Added Series" items={recentlyAdded} seeMoreLink="#" />
+        </Suspense>
       </div>
-    </main>
-  );
+    </div>
+  )
 }

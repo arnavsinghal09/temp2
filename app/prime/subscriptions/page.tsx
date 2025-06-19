@@ -168,29 +168,6 @@ export default function SubscriptionsPage() {
         </div>
       </div>
 
-      {/* Available Channels */}
-      <div className="px-8 md:px-16 py-12">
-        <h2 className="text-white text-3xl font-bold mb-8">Available Channels</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {availableChannels.map((channel) => (
-            <div
-              key={channel.id}
-              className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer"
-            >
-              <div className="aspect-video bg-gray-800 rounded-lg mb-3 flex items-center justify-center">
-                <img
-                  src={channel.thumbnail || "/placeholder.svg"}
-                  alt={channel.name}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              </div>
-              <h3 className="text-white font-bold text-sm mb-1">{channel.name}</h3>
-              <p className="text-gray-400 text-xs mb-2">{channel.price}</p>
-              <span className="text-green-400 text-xs font-medium">{channel.trial}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Benefits Section */}
       <div className="px-8 md:px-16 py-12 bg-white/5">

@@ -29,7 +29,7 @@ export default function HomePage() {
           <ContentRow
             title="Featured Originals"
             items={featuredOriginals}
-            seeMoreLink="/originals"
+            seeMoreLink="#"
           />
         </Suspense>
 
@@ -37,7 +37,7 @@ export default function HomePage() {
           <ContentRow
             title="Trending Now"
             items={popularMovies}
-            seeMoreLink="/trending"
+            seeMoreLink="#"
           />
         </Suspense>
 
@@ -45,7 +45,7 @@ export default function HomePage() {
           <ContentRow
             title="Popular TV Shows"
             items={topTVShows}
-            seeMoreLink="/tv-shows"
+            seeMoreLink="#"
           />
         </Suspense>
 
@@ -53,7 +53,7 @@ export default function HomePage() {
           <ContentRow
             title="Recently Added"
             items={recentlyAdded}
-            seeMoreLink="/recent"
+            seeMoreLink="#"
           />
         </Suspense>
       </div>

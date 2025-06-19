@@ -9,7 +9,6 @@ const navigationItems = [
   { href: "/", label: "HOME" },
   { href: "/movies", label: "MOVIES" },
   { href: "/tv-shows", label: "TV SHOWS" },
-  { href: "/live-tv", label: "LIVE TV" },
 ]
 
 export default function Header() {

@@ -15,7 +15,7 @@ const bookmarkedMovies: ContentItem[] = [
   {
     id: "bookmark-movie-1",
     title: "The Tomorrow War",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Tomorrow+War",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
     badge: "BOOKMARKED",
     isPrime: true,
     year: 2021,
@@ -26,7 +26,7 @@ const bookmarkedMovies: ContentItem[] = [
   {
     id: "bookmark-movie-2",
     title: "Sound of Metal",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Sound+of+Metal",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/sound+of+metal.jpg",
     isPrime: true,
     year: 2020,
     duration: "2h 0m",
@@ -35,8 +35,8 @@ const bookmarkedMovies: ContentItem[] = [
   },
   {
     id: "bookmark-movie-3",
-    title: "The Power of the Dog",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Power+of+Dog",
+    title: "Jack Ryan",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/jack+ryan.jpeg",
     isPrime: true,
     year: 2021,
     duration: "2h 8m",
@@ -49,7 +49,7 @@ const bookmarkedTVShows: ContentItem[] = [
   {
     id: "bookmark-tv-1",
     title: "The Boys",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Boys",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     badge: "WATCHING",
     isPrime: true,
     year: 2024,
@@ -59,8 +59,8 @@ const bookmarkedTVShows: ContentItem[] = [
   },
   {
     id: "bookmark-tv-2",
-    title: "The Marvelous Mrs. Maisel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mrs+Maisel",
+    title: "The Marvelous Show",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+marvelous+show.jpeg",
     isPrime: true,
     year: 2023,
     duration: "52m",
@@ -70,7 +70,7 @@ const bookmarkedTVShows: ContentItem[] = [
   {
     id: "bookmark-tv-3",
     title: "Fallout",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Fallout",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     badge: "NEW EPISODES",
     isPrime: true,
     year: 2024,
@@ -84,7 +84,7 @@ const continueWatching: ContentItem[] = [
   {
     id: "continue-1",
     title: "THE TRAITORS",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=THE+TRAITORS",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     badge: "EPISODE 3",
     isPrime: true,
     year: 2024,
@@ -94,8 +94,8 @@ const continueWatching: ContentItem[] = [
   },
   {
     id: "continue-2",
-    title: "Jack Ryan",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Jack+Ryan",
+    title: "Mission Impossible 2",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+2.jpg",
     badge: "SEASON 4",
     isPrime: true,
     year: 2023,

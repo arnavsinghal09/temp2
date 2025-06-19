@@ -18,7 +18,7 @@ const featuredMovie: FeaturedContent = {
   title: "THE TOMORROW WAR",
   description:
     "A family man is drafted to fight in a future war where the fate of humanity relies on his ability to confront the past. Starring Chris Pratt in this action-packed sci-fi thriller that will keep you on the edge of your seat.",
-  backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+TOMORROW+WAR+Hero",
+  backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
   episodeInfo: "AVAILABLE NOW",
   newEpisodeInfo: "New on Prime",
   imdbRating: "6.5",
@@ -30,8 +30,8 @@ const featuredMovie: FeaturedContent = {
 const actionMovies: ContentItem[] = [
   {
     id: "action-1",
-    title: "Nobody",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Nobody+Action",
+    title: "Reacher",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/reacher.jpg",
     badge: "TOP 10",
     isPrime: true,
     year: 2021,
@@ -41,8 +41,8 @@ const actionMovies: ContentItem[] = [
   },
   {
     id: "action-2",
-    title: "The Accountant",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Accountant",
+    title: "The Boys",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     isPrime: true,
     year: 2016,
     duration: "2h 8m",
@@ -51,8 +51,8 @@ const actionMovies: ContentItem[] = [
   },
   {
     id: "action-3",
-    title: "John Wick",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=John+Wick",
+    title: "Mission Impossible 4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+4.jpg",
     badge: "TOP 10",
     isPrime: true,
     year: 2014,
@@ -62,8 +62,8 @@ const actionMovies: ContentItem[] = [
   },
   {
     id: "action-4",
-    title: "Mad Max: Fury Road",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mad+Max+Fury+Road",
+    title: "Sound of Metal",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/sound+of+metal.jpg",
     isPrime: true,
     year: 2015,
     duration: "2h 0m",
@@ -72,8 +72,8 @@ const actionMovies: ContentItem[] = [
   },
   {
     id: "action-5",
-    title: "Atomic Blonde",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Atomic+Blonde",
+    title: "Fallout",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     isPrime: true,
     year: 2017,
     duration: "1h 55m",
@@ -86,7 +86,7 @@ const comedyMovies: ContentItem[] = [
   {
     id: "comedy-1",
     title: "Coming 2 America",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Coming+2+America",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/coming+2+america.jpeg",
     badge: "NEW",
     isPrime: true,
     year: 2021,
@@ -96,8 +96,8 @@ const comedyMovies: ContentItem[] = [
   },
   {
     id: "comedy-2",
-    title: "The Grand Budapest Hotel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Grand+Budapest+Hotel",
+    title: "The Final Destination",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+4.jpg",
     isPrime: true,
     year: 2014,
     duration: "1h 39m",
@@ -106,8 +106,8 @@ const comedyMovies: ContentItem[] = [
   },
   {
     id: "comedy-3",
-    title: "Knives Out",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Knives+Out",
+    title: "The Power",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+power.webp",
     badge: "TOP 10",
     isPrime: true,
     year: 2019,
@@ -117,8 +117,8 @@ const comedyMovies: ContentItem[] = [
   },
   {
     id: "comedy-4",
-    title: "Palm Springs",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Palm+Springs",
+    title: "Traitors",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     isPrime: true,
     year: 2020,
     duration: "1h 30m",
@@ -127,8 +127,8 @@ const comedyMovies: ContentItem[] = [
   },
   {
     id: "comedy-5",
-    title: "The Nice Guys",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Nice+Guys",
+    title: "Citadel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/citadel.jpeg",
     isPrime: true,
     year: 2016,
     duration: "1h 56m",
@@ -140,8 +140,8 @@ const comedyMovies: ContentItem[] = [
 const dramaMovies: ContentItem[] = [
   {
     id: "drama-1",
-    title: "Manchester by the Sea",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Manchester+by+Sea",
+    title: "Being The Ricardos",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/being+the+ricardos.jpg",
     isPrime: true,
     year: 2016,
     duration: "2h 17m",
@@ -150,8 +150,8 @@ const dramaMovies: ContentItem[] = [
   },
   {
     id: "drama-2",
-    title: "The Power of the Dog",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Power+of+Dog",
+    title: "Final Destination 2",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+2.jpg",
     badge: "AWARD WINNER",
     isPrime: true,
     year: 2021,
@@ -161,8 +161,8 @@ const dramaMovies: ContentItem[] = [
   },
   {
     id: "drama-3",
-    title: "Sound of Metal",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Sound+of+Metal",
+    title: "Final Destination 4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+4.jpg",
     badge: "AWARD WINNER",
     isPrime: true,
     year: 2020,
@@ -172,8 +172,8 @@ const dramaMovies: ContentItem[] = [
   },
   {
     id: "drama-4",
-    title: "Moonlight",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Moonlight+Movie",
+    title: "The bear",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+bear.jpeg",
     isPrime: true,
     year: 2016,
     duration: "1h 51m",
@@ -182,8 +182,8 @@ const dramaMovies: ContentItem[] = [
   },
   {
     id: "drama-5",
-    title: "Lady Bird",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Lady+Bird",
+    title: "The Tomorrow War",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
     isPrime: true,
     year: 2017,
     duration: "1h 34m",
@@ -201,23 +201,23 @@ export default function MoviesPage() {
 
       <div className="py-12 space-y-12">
         <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow title="Popular Movies" items={popularMovies} seeMoreLink="/movies/popular" />
+          <ContentRow title="Popular Movies" items={popularMovies} seeMoreLink="#" />
         </Suspense>
 
         <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow title="Action & Adventure" items={actionMovies} seeMoreLink="/movies/action" />
+          <ContentRow title="Action & Adventure" items={actionMovies} seeMoreLink="#" />
         </Suspense>
 
         <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow title="Comedy Movies" items={comedyMovies} seeMoreLink="/movies/comedy" />
+          <ContentRow title="Comedy Movies" items={comedyMovies} seeMoreLink="#" />
         </Suspense>
 
         <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow title="Award-Winning Dramas" items={dramaMovies} seeMoreLink="/movies/drama" />
+          <ContentRow title="Award-Winning Dramas" items={dramaMovies} seeMoreLink="#" />
         </Suspense>
 
         <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow title="Recently Added Movies" items={recentlyAdded} seeMoreLink="/movies/recent" />
+          <ContentRow title="Recently Added Movies" items={recentlyAdded} seeMoreLink="#" />
         </Suspense>
       </div>
     </div>

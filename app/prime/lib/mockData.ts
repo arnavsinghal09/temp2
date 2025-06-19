@@ -3,7 +3,7 @@ export const featuredContent = {
   title: "THE TRAITORS",
   description:
     "Season 1 · Welcome to The Traitors — a ruthless reality show hosted by Karan Johar, where 20 celebrities betray and deceive each other for a chance to win a massive cash prize. Trust no one.",
-  backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+TRAITORS+Hero+Banner",
+  backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
   episodeInfo: "NEW EPISODES THURSDAY 8 PM",
   newEpisodeInfo: "New episode Thursday",
   imdbRating: "8.2",
@@ -16,7 +16,7 @@ export const featuredOriginals = [
   {
     id: "original-1",
     title: "THE TRAITORS",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=THE+TRAITORS",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     badge: "TOP 10",
     isPrime: true,
     year: 2024,
@@ -26,8 +26,8 @@ export const featuredOriginals = [
   },
   {
     id: "original-2",
-    title: "ROMCON",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=ROMCON",
+    title: "Being The Ricardos",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/being+the+ricardos.jpg",
     badge: "NEW SERIES",
     isPrime: true,
     year: 2024,
@@ -37,8 +37,8 @@ export const featuredOriginals = [
   },
   {
     id: "original-3",
-    title: "in transit",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=in+transit",
+    title: "Citadel",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/citadel.jpeg",
     badge: "NEW SERIES",
     isPrime: true,
     year: 2024,
@@ -48,8 +48,8 @@ export const featuredOriginals = [
   },
   {
     id: "original-4",
-    title: "CLARKSON'S FARM",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=CLARKSON'S+FARM",
+    title: "Coming 2 America",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/coming+2+america.jpeg",
     badge: "NEW SEASON",
     isPrime: true,
     year: 2024,
@@ -59,8 +59,8 @@ export const featuredOriginals = [
   },
   {
     id: "original-5",
-    title: "MOTORHEADS",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=MOTORHEADS",
+    title: "Fallout",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     badge: "NEW SERIES",
     isPrime: true,
     year: 2024,
@@ -73,8 +73,8 @@ export const featuredOriginals = [
 export const recentlyAdded = [
   {
     id: "recent-1",
-    title: "The Bear",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Bear",
+    title: "Final Destination 2",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+2.jpg",
     isPrime: true,
     year: 2024,
     duration: "30m",
@@ -83,8 +83,8 @@ export const recentlyAdded = [
   },
   {
     id: "recent-2",
-    title: "Fallout",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Fallout",
+    title: "Final Destination 4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Final+Destination+4.jpg",
     isPrime: true,
     year: 2024,
     duration: "1h 5m",
@@ -93,8 +93,8 @@ export const recentlyAdded = [
   },
   {
     id: "recent-3",
-    title: "Mr. & Mrs. Smith",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mr+Mrs+Smith",
+    title: "The Marvelous Show",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+marvelous+show.jpeg",
     isPrime: true,
     year: 2024,
     duration: "55m",
@@ -103,8 +103,8 @@ export const recentlyAdded = [
   },
   {
     id: "recent-4",
-    title: "The Power",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Power",
+    title: "Jack Ryan",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Jack+Ryan.png",
     isPrime: true,
     year: 2024,
     duration: "58m",
@@ -113,8 +113,8 @@ export const recentlyAdded = [
   },
   {
     id: "recent-5",
-    title: "Air",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Air+Movie",
+    title: "Mission Impossible 1",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI+1.webp",
     isPrime: true,
     year: 2023,
     duration: "1h 51m",
@@ -126,8 +126,8 @@ export const recentlyAdded = [
 export const popularMovies = [
   {
     id: "movie-1",
-    title: "The Tomorrow War",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Tomorrow+War",
+    title: "Mission Impossible 7",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/MI7.jpg",
     badge: "TOP 10",
     isPrime: true,
     year: 2021,
@@ -137,8 +137,8 @@ export const popularMovies = [
   },
   {
     id: "movie-2",
-    title: "Sound of Metal",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Sound+of+Metal",
+    title: "Mr and Mrs Smith",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/mr+ans+mrs+smith.jpg",
     isPrime: true,
     year: 2020,
     duration: "2h 0m",
@@ -147,8 +147,8 @@ export const popularMovies = [
   },
   {
     id: "movie-3",
-    title: "Coming 2 America",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Coming+2+America",
+    title: "Sound of metal",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/sound+of+metal.jpg",
     isPrime: true,
     year: 2021,
     duration: "1h 50m",
@@ -157,8 +157,8 @@ export const popularMovies = [
   },
   {
     id: "movie-4",
-    title: "The Power of the Dog",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Power+of+Dog",
+    title: "The Bear",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+bear.jpeg",
     isPrime: true,
     year: 2021,
     duration: "2h 8m",
@@ -167,8 +167,8 @@ export const popularMovies = [
   },
   {
     id: "movie-5",
-    title: "Being the Ricardos",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Being+Ricardos",
+    title: "The Boys",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     isPrime: true,
     year: 2021,
     duration: "2h 11m",
@@ -180,8 +180,8 @@ export const popularMovies = [
 export const topTVShows = [
   {
     id: "tv-1",
-    title: "The Boys",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=The+Boys",
+    title: "The Marvelous Show",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+marvelous+show.jpeg",
     badge: "TOP 10",
     isPrime: true,
     year: 2024,
@@ -191,8 +191,8 @@ export const topTVShows = [
   },
   {
     id: "tv-2",
-    title: "The Marvelous Mrs. Maisel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Mrs+Maisel",
+    title: "The Power",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+power.webp",
     isPrime: true,
     year: 2023,
     duration: "52m",
@@ -201,8 +201,8 @@ export const topTVShows = [
   },
   {
     id: "tv-3",
-    title: "Jack Ryan",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Jack+Ryan",
+    title: "The Tommorrow War",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
     isPrime: true,
     year: 2023,
     duration: "1h 8m",
@@ -211,8 +211,8 @@ export const topTVShows = [
   },
   {
     id: "tv-4",
-    title: "The Wheel of Time",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Wheel+of+Time",
+    title: "The Traitors",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     isPrime: true,
     year: 2023,
     duration: "1h 5m",
@@ -221,8 +221,8 @@ export const topTVShows = [
   },
   {
     id: "tv-5",
-    title: "Citadel",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Citadel",
+    title: "The Wheel of Time",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+wheelc+of+time.jpeg",
     isPrime: true,
     year: 2023,
     duration: "58m",
@@ -230,6 +230,8 @@ export const topTVShows = [
     genre: "Spy",
   },
 ]
+
+// done till here
 
 export const getContentById = (id: string) => {
   const allContent = [...recentlyAdded, ...popularMovies, ...topTVShows, ...featuredOriginals, featuredContent]
@@ -239,7 +241,7 @@ export const getContentById = (id: string) => {
       title: "Sample Content",
       description:
         "This is a sample description for the content. In a real application, this would be fetched from a database or API with detailed plot information and cast details.",
-      thumbnail: "/placeholder.svg?height=315&width=560&text=Sample+Content",
+      thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
       year: 2024,
       duration: "1h 30m",
       genre: "Drama, Thriller",
@@ -252,7 +254,7 @@ export const recommendedContent = [
   {
     id: "rec-1",
     title: "Similar Show 1",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+1",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     isPrime: true,
     year: 2024,
     duration: "45m",
@@ -262,7 +264,7 @@ export const recommendedContent = [
   {
     id: "rec-2",
     title: "Similar Show 2",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+2",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
     isPrime: true,
     year: 2023,
     duration: "1h 2m",
@@ -272,7 +274,7 @@ export const recommendedContent = [
   {
     id: "rec-3",
     title: "Similar Show 3",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+3",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Jack+Ryan.png",
     isPrime: true,
     year: 2024,
     duration: "38m",
@@ -282,7 +284,7 @@ export const recommendedContent = [
   {
     id: "rec-4",
     title: "Similar Show 4",
-    thumbnail: "/placeholder.svg?height=315&width=560&text=Similar+Show+4",
+    thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     isPrime: true,
     year: 2024,
     duration: "52m",

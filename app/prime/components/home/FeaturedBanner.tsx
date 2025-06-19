@@ -6,6 +6,7 @@ import Link from "next/link"
 import type { FeaturedContent } from "../../lib/types/index"
 import { useState, useEffect, useRef } from "react"
 
+
 interface FeaturedBannerProps {
   content: FeaturedContent
 }
@@ -17,7 +18,7 @@ const featuredCarousel: FeaturedContent[] = [
     title: "THE TRAITORS",
     description:
       "Season 1 · Welcome to The Traitors — a ruthless reality show hosted by Karan Johar, where 20 celebrities betray and deceive each other for a chance to win a massive cash prize. Trust no one.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+TRAITORS+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     episodeInfo: "NEW EPISODES THURSDAY 8 PM",
     newEpisodeInfo: "New episode Thursday",
     imdbRating: "8.2",
@@ -30,7 +31,7 @@ const featuredCarousel: FeaturedContent[] = [
     title: "FALLOUT",
     description:
       "Based on one of the greatest video game series of all time, Fallout is the story of haves and have-nots in a world in which there's almost nothing left to have. 200 years after the apocalypse, the gentle denizens of luxury fallout shelters are forced to return to the irradiated hellscape their ancestors left behind.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=FALLOUT+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/fallout.webp",
     episodeInfo: "NOW STREAMING",
     newEpisodeInfo: "All episodes available",
     imdbRating: "8.6",
@@ -43,7 +44,7 @@ const featuredCarousel: FeaturedContent[] = [
     title: "MR. & MRS. SMITH",
     description:
       "Two strangers land jobs with a spy agency that offers them a glorious life of espionage, wealth, world travel, and a dream house in the suburbs. What they don't know is that they're actually married to each other, as part of a highly classified and dangerous mission.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=MR+%26+MRS+SMITH+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/mr+ans+mrs+smith.jpg",
     episodeInfo: "NOW STREAMING",
     newEpisodeInfo: "Complete series available",
     imdbRating: "7.2",
@@ -56,7 +57,7 @@ const featuredCarousel: FeaturedContent[] = [
     title: "THE BOYS",
     description:
       "Season 4 · A group of vigilantes set out to take down corrupt superheroes who abuse their superpowers. This dark, satirical take on the superhero genre pushes boundaries with its brutal action and sharp social commentary.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+BOYS+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+boys.avif",
     episodeInfo: "SEASON 4 NOW STREAMING",
     newEpisodeInfo: "New season available",
     imdbRating: "8.7",
@@ -69,7 +70,7 @@ const featuredCarousel: FeaturedContent[] = [
     title: "THE POWER",
     description:
       "Based on the award-winning novel, The Power is set in a world where women develop the ability to release electrical jolts from their hands. This newfound power shifts the global balance of power and changes everything we know about gender dynamics.",
-    backgroundImage: "/placeholder.svg?height=800&width=1400&text=THE+POWER+Hero+Banner",
+    backgroundImage: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+power.webp",
     episodeInfo: "NOW STREAMING",
     newEpisodeInfo: "Complete series available",
     imdbRating: "7.6",
