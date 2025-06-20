@@ -376,7 +376,7 @@ function NetflixClipMessage({
         try {
           await audio.play();
           console.log("✅ Audio playback started successfully");
-        } catch (playError:any) {
+        } catch (playError: any) {
           console.error("❌ Error starting audio playback:", playError);
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
@@ -481,8 +481,8 @@ function NetflixClipMessage({
       return null;
     }
   };
-  
-  
+
+
 
   // Enhanced base64 to blob conversion with better error handling
   const base64ToBlob = (base64Data: string): Blob => {
@@ -533,7 +533,7 @@ function NetflixClipMessage({
       });
 
       return blob;
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("❌ Error converting base64 to blob:", error);
       throw new Error(`Failed to convert base64 to blob: ${error.message}`);
     }
@@ -803,7 +803,7 @@ function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
           <div className="space-y-2">
             {message.content &&
               message.content !==
-                `Shared a clip from ${message.clipData?.title}` && (
+              `Shared a clip from ${message.clipData?.title}` && (
                 <div
                   className={cn(
                     "p-3 rounded-lg break-words",
@@ -882,13 +882,35 @@ export function ChatPanel({
   }, [participant]);
 
   // Load messages when participant changes
+  // REPLACE THE ABOVE useEffect WITH THIS:
   useEffect(() => {
     if (participant && currentUser) {
+      console.log("🔍 Loading messages for chat panel:", {
+        participantId: participant.id,
+        participantType: participant.type,
+        participantName: participant.name,
+        currentUserId: currentUser.id,
+        currentUserName: currentUser.name,
+      });
+
       const loadedMessages = MessageSystem.getMessagesForChat(
         currentUser.id,
         participant.id,
         participant.type
       );
+
+      console.log("📋 Messages loaded for chat panel:", {
+        messageCount: loadedMessages.length,
+        messages: loadedMessages.map(msg => ({
+          id: msg.id,
+          type: msg.type,
+          sender: msg.sender,
+          timestamp: msg.timestamp,
+          hasNetflixClip: !!msg.clipData?.netflixData,
+          hasVoiceReaction: msg.reactionData?.type === "voice",
+        })),
+      });
+
       setMessages(loadedMessages);
     }
   }, [participant, currentUser]);
@@ -957,9 +979,22 @@ export function ChatPanel({
       };
 
       // Send message through the message system
+      // REPLACE THE ABOVE PART WITH THIS:
+      console.log("📤 Sending message from chat panel:", {
+        messageType: newMsg.type,
+        messageId: newMsg.id,
+        fromUser: currentUser.name,
+        toParticipant: participant.name,
+        participantType: participant.type,
+        participantId: participant.id,
+      });
+
+      // Send message through the message system
       if (participant.type === "friend") {
+        console.log("👤 Sending direct message to friend");
         MessageSystem.sendDirectMessage(currentUser.id, participant.id, newMsg);
       } else {
+        console.log("🔥 Sending campfire message");
         MessageSystem.sendCampfireMessage(
           currentUser.id,
           participant.id,
@@ -967,12 +1002,22 @@ export function ChatPanel({
         );
       }
 
+      console.log("🔄 Reloading messages after send...");
+
       // Reload messages to get the updated chat
       const updatedMessages = MessageSystem.getMessagesForChat(
         currentUser.id,
         participant.id,
         participant.type
       );
+
+      console.log("📊 Messages after reload:", {
+        previousCount: messages.length,
+        newCount: updatedMessages.length,
+        newMessage: updatedMessages.find(m => m.id === newMsg.id) ? "Found" : "NOT FOUND",
+      });
+
+      
       setMessages(updatedMessages);
 
       setNewMessage("");

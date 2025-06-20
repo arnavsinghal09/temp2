@@ -21,34 +21,43 @@ const MESSAGE_ROUTES_KEY = "firetv_message_routes";
 
 export class MessageSystem {
   // Send a message to a friend
-  static sendDirectMessage(
-    fromUserId: number,
-    toUserId: number,
-    message: ChatMessage
-  ): void {
-    console.log("📤 Sending direct message:", {
-      from: fromUserId,
-      to: toUserId,
-      type: message.type,
-      hasVoiceData: !!message.voiceData,
-      hasReactionData: !!message.reactionData,
-    });
+  // Replace the existing sendDirectMessage method in lib/message-system.ts
 
-    const route: MessageRoute = {
-      fromUserId,
-      toUserId,
-      messageId: message.id,
-      timestamp: new Date().toISOString(),
-    };
+static sendDirectMessage(
+  fromUserId: number,
+  toUserId: number,
+  message: ChatMessage
+): void {
+  console.log("📤 Sending direct message:", {
+    from: fromUserId,
+    to: toUserId,
+    type: message.type,
+    messageId: message.id,
+    hasVoiceData: !!message.voiceData,
+    hasReactionData: !!message.reactionData,
+    hasNetflixData: !!message.clipData?.netflixData,
+  });
 
-    // Store the message route
-    this.storeMessageRoute(route);
+  const route: MessageRoute = {
+    fromUserId,
+    toUserId,
+    messageId: message.id,
+    timestamp: new Date().toISOString(),
+  };
 
-    // Add message to sender's chat
+  // Store the message route
+  this.storeMessageRoute(route);
+
+  try {
+    // Add message to sender's chat (from sender's perspective)
+    console.log(`💾 Adding message to sender's chat (${fromUserId} -> ${toUserId})`);
     this.addMessageToChat(fromUserId, toUserId, "friend", message);
+    console.log(`✅ Message added to sender ${fromUserId}'s chat with friend ${toUserId}`);
 
-    // Add message to receiver's chat (simulating real-time delivery)
+    // Add message to receiver's chat (from receiver's perspective)
+    console.log(`💾 Adding message to receiver's chat (${toUserId} <- ${fromUserId})`);
     this.addMessageToChat(toUserId, fromUserId, "friend", message);
+    console.log(`✅ Message added to receiver ${toUserId}'s chat with friend ${fromUserId}`);
 
     // Store as pending message for delivery tracking
     this.storePendingMessage({
@@ -58,8 +67,48 @@ export class MessageSystem {
       delivered: true, // In local system, always delivered
     });
 
-    console.log("✅ Direct message sent successfully");
+    console.log("✅ Direct message sent successfully to both parties");
+
+    // Verify the message was stored correctly
+    this.verifyMessageStorage(fromUserId, toUserId, message.id);
+  } catch (error) {
+    console.error("❌ Error in sendDirectMessage:", error);
+    throw error;
   }
+}
+
+// Add this new verification method
+private static verifyMessageStorage(
+  fromUserId: number,
+  toUserId: number,
+  messageId: number
+): void {
+  console.log("🔍 Verifying message storage:");
+  
+  try {
+    // Check sender's chat
+    const senderMessages = this.getMessagesForChat(fromUserId, toUserId, "friend");
+    const senderHasMessage = senderMessages.some(msg => msg.id === messageId);
+    console.log(`📋 Sender ${fromUserId} has message: ${senderHasMessage} (${senderMessages.length} total messages)`);
+
+    // Check receiver's chat
+    const receiverMessages = this.getMessagesForChat(toUserId, fromUserId, "friend");
+    const receiverHasMessage = receiverMessages.some(msg => msg.id === messageId);
+    console.log(`📋 Receiver ${toUserId} has message: ${receiverHasMessage} (${receiverMessages.length} total messages)`);
+
+    if (!senderHasMessage || !receiverHasMessage) {
+      console.error("❌ Message storage verification failed:", {
+        senderHasMessage,
+        receiverHasMessage,
+        messageId,
+      });
+    } else {
+      console.log("✅ Message storage verification passed");
+    }
+  } catch (error) {
+    console.error("❌ Error during message storage verification:", error);
+  }
+}
 
   // Send a message to a campfire
   static sendCampfireMessage(
@@ -105,118 +154,142 @@ export class MessageSystem {
   }
 
   // Enhanced method for Netflix clip messages
-  static sendNetflixClipMessage(
-    fromUserId: number,
-    targetIds: number[],
-    targetType: "friends" | "campfires",
-    clipData: any,
-    reaction?: {
-      type: "text" | "voice";
-      content: string;
-      timestamp: number;
-      voiceDuration?: number;
-      voiceBlob?: Blob;
-      voiceBase64?: string;
-    }
-  ): void {
-    console.log("🎬 Sending Netflix clip message:", {
-      from: fromUserId,
-      targetType,
-      targetCount: targetIds.length,
-      hasReaction: !!reaction,
-      reactionType: reaction?.type,
+  // Replace the sendNetflixClipMessage method in lib/message-system.ts
+
+static sendNetflixClipMessage(
+  fromUserId: number,
+  targetIds: number[],
+  targetType: "friends" | "campfires",
+  clipData: any,
+  reaction?: {
+    type: "text" | "voice";
+    content: string;
+    timestamp: number;
+    voiceDuration?: number;
+    voiceBlob?: Blob;
+    voiceBase64?: string;
+  }
+): void {
+  console.log("🎬 Sending Netflix clip message:", {
+    from: fromUserId,
+    targetType,
+    targetCount: targetIds.length,
+    targetIds: targetIds,
+    hasReaction: !!reaction,
+    reactionType: reaction?.type,
+  });
+
+  // Handle voice blob reconstruction
+  let processedReaction = reaction;
+  if (reaction && reaction.type === "voice") {
+    console.log("🎤 Processing voice reaction:", {
+      hasVoiceBlob: !!reaction.voiceBlob,
+      hasVoiceBase64: !!reaction.voiceBase64,
+      voiceDuration: reaction.voiceDuration,
     });
 
-    // Handle voice blob reconstruction
-    let processedReaction = reaction;
-    if (reaction && reaction.type === "voice") {
-      console.log("🎤 Processing voice reaction:", {
-        hasVoiceBlob: !!reaction.voiceBlob,
-        hasVoiceBase64: !!reaction.voiceBase64,
-        voiceDuration: reaction.voiceDuration,
-      });
-
-      if (reaction.voiceBase64) {
-        try {
-          // Keep both blob and base64 for compatibility
-          processedReaction = {
-            ...reaction,
-            voiceBlob: reaction.voiceBlob, // Keep original blob if available
-            voiceBase64: reaction.voiceBase64, // Keep base64 for persistence
-          };
-          console.log("✅ Voice reaction processed successfully");
-        } catch (error) {
-          console.error("❌ Error processing voice reaction:", error);
-          // Fallback without blob
-          processedReaction = {
-            ...reaction,
-            voiceBlob: undefined,
-          };
-        }
+    if (reaction.voiceBase64) {
+      try {
+        // Keep both blob and base64 for compatibility
+        processedReaction = {
+          ...reaction,
+          voiceBlob: reaction.voiceBlob, // Keep original blob if available
+          voiceBase64: reaction.voiceBase64, // Keep base64 for persistence
+        };
+        console.log("✅ Voice reaction processed successfully");
+      } catch (error) {
+        console.error("❌ Error processing voice reaction:", error);
+        // Fallback without blob
+        processedReaction = {
+          ...reaction,
+          voiceBlob: undefined,
+        };
       }
     }
-
-    const message: ChatMessage = {
-      id: Date.now() + Math.random(),
-      type: "clip",
-      sender: this.getUserName(fromUserId),
-      content:
-        processedReaction?.content ||
-        `Shared a clip from ${clipData.contentTitle}`,
-      timestamp: new Date().toLocaleString(),
-      avatar: this.getUserAvatar(fromUserId),
-      clipData: {
-        title: clipData.contentTitle,
-        thumbnail: clipData.contentThumbnail,
-        duration: this.formatDuration(clipData.duration),
-        platform: "Netflix",
-        netflixData: {
-          contentId: clipData.contentId,
-          startTime: clipData.startTime,
-          endTime: clipData.endTime,
-          clipId: clipData.id,
-          sharedFrom: "Netflix",
-        },
-      },
-      reactionData: processedReaction
-        ? {
-            type: processedReaction.type,
-            content: processedReaction.content,
-            voiceBlob: processedReaction.voiceBlob,
-            voiceDuration: processedReaction.voiceDuration
-              ? this.formatDuration(processedReaction.voiceDuration)
-              : undefined,
-            voiceBase64: processedReaction.voiceBase64,
-            timestamp: processedReaction.timestamp,
-          }
-        : undefined,
-    };
-
-    console.log("📦 Netflix clip message prepared:", {
-      hasClipData: !!message.clipData,
-      hasNetflixData: !!message.clipData?.netflixData,
-      hasReactionData: !!message.reactionData,
-      reactionType: message.reactionData?.type,
-    });
-
-    // Process the message
-    const processedMessage = this.processNetflixClipMessage(message);
-
-    // Send to targets
-    if (targetType === "friends") {
-      console.log("👥 Sending to friends:", targetIds);
-      targetIds.forEach((friendId) => {
-        this.sendDirectMessage(fromUserId, friendId, processedMessage);
-      });
-    } else {
-      console.log("🔥 Sending to campfires:", targetIds);
-      targetIds.forEach((campfireId) => {
-        this.sendCampfireMessage(fromUserId, campfireId, processedMessage);
-      });
-    }
-
-    console.log("✅ Netflix clip message sent to all targets");
   }
+
+  const message: ChatMessage = {
+    id: Date.now() + Math.random(),
+    type: "clip",
+    sender: this.getUserName(fromUserId),
+    content:
+      processedReaction?.content ||
+      `Shared a clip from ${clipData.contentTitle}`,
+    timestamp: new Date().toLocaleString(),
+    avatar: this.getUserAvatar(fromUserId),
+    clipData: {
+      title: clipData.contentTitle,
+      thumbnail: clipData.contentThumbnail,
+      duration: this.formatDuration(clipData.duration),
+      platform: "Netflix",
+      netflixData: {
+        contentId: clipData.contentId,
+        startTime: clipData.startTime,
+        endTime: clipData.endTime,
+        clipId: clipData.id,
+        sharedFrom: "Netflix",
+      },
+    },
+    reactionData: processedReaction
+      ? {
+          type: processedReaction.type,
+          content: processedReaction.content,
+          voiceBlob: processedReaction.voiceBlob,
+          voiceDuration: processedReaction.voiceDuration
+            ? this.formatDuration(processedReaction.voiceDuration)
+            : undefined,
+          voiceBase64: processedReaction.voiceBase64,
+          timestamp: processedReaction.timestamp,
+        }
+      : undefined,
+  };
+
+  console.log("📦 Netflix clip message prepared:", {
+    messageId: message.id,
+    hasClipData: !!message.clipData,
+    hasNetflixData: !!message.clipData?.netflixData,
+    hasReactionData: !!message.reactionData,
+    reactionType: message.reactionData?.type,
+  });
+
+  // Process the message
+  const processedMessage = this.processNetflixClipMessage(message);
+
+  // Send to targets with enhanced logging
+  if (targetType === "friends") {
+    console.log("👥 Sending to friends:", targetIds);
+    
+    targetIds.forEach((friendId, index) => {
+      console.log(`📤 Sending to friend ${friendId} (${index + 1}/${targetIds.length})`);
+      
+      try {
+        this.sendDirectMessage(fromUserId, friendId, processedMessage);
+        console.log(`✅ Successfully sent to friend ${friendId}`);
+      } catch (error) {
+        console.error(`❌ Failed to send to friend ${friendId}:`, error);
+      }
+    });
+    
+    console.log("✅ Finished sending to all friends");
+  } else {
+    console.log("🔥 Sending to campfires:", targetIds);
+    
+    targetIds.forEach((campfireId, index) => {
+      console.log(`📤 Sending to campfire ${campfireId} (${index + 1}/${targetIds.length})`);
+      
+      try {
+        this.sendCampfireMessage(fromUserId, campfireId, processedMessage);
+        console.log(`✅ Successfully sent to campfire ${campfireId}`);
+      } catch (error) {
+        console.error(`❌ Failed to send to campfire ${campfireId}:`, error);
+      }
+    });
+    
+    console.log("✅ Finished sending to all campfires");
+  }
+
+  console.log("✅ Netflix clip message sent to all targets");
+}
 
   // Enhanced base64 to blob conversion
   private static base64ToBlob(base64Data: string): Blob {
@@ -480,82 +553,114 @@ export class MessageSystem {
   }
 
   // Add a message to a specific user's chat with enhanced audio handling
-  private static addMessageToChat(
-    userId: number,
-    participantId: number,
-    type: "friend" | "campfire",
-    message: ChatMessage
-  ): void {
-    console.log("💾 Adding message to chat:", {
-      userId,
-      participantId,
-      type,
-      messageType: message.type,
-      hasVoiceReaction: message.reactionData?.type === "voice",
+  // Replace the existing addMessageToChat method in lib/message-system.ts
+
+private static addMessageToChat(
+  userId: number,
+  participantId: number,
+  type: "friend" | "campfire",
+  message: ChatMessage
+): void {
+  console.log("💾 Adding message to chat:", {
+    userId,
+    participantId,
+    type,
+    messageType: message.type,
+    messageId: message.id,
+    hasVoiceReaction: message.reactionData?.type === "voice",
+  });
+
+  try {
+    const key = this.getChatKey(userId, participantId, type);
+    console.log(`🔑 Using chat key: ${key}`);
+
+    // Get existing messages WITHOUT using the enhanced getMessagesForChat
+    // to avoid circular dependency during message addition
+    const existingMessages = this.getRawMessagesForChat(userId, participantId, type);
+    console.log(`📊 Found ${existingMessages.length} existing messages in chat`);
+
+    // Check if message already exists (prevent duplicates)
+    const messageExists = existingMessages.some(
+      (msg) => msg.id === message.id
+    );
+
+    if (messageExists) {
+      console.log("⚠️ Message already exists, skipping:", message.id);
+      return;
+    }
+
+    // Process Netflix clips if needed
+    let processedMessage =
+      message.type === "clip" && message.clipData?.netflixData
+        ? this.processNetflixClipMessage(message)
+        : message;
+
+    // Special handling for voice reactions - ensure base64 conversion
+    if (processedMessage.reactionData?.voiceBlob && processedMessage.reactionData?.type === "voice") {
+      console.log("🎤 Processing voice reaction for storage:", {
+        hasBlobData: !!processedMessage.reactionData.voiceBlob,
+        hasBase64: !!processedMessage.reactionData.voiceBase64,
+        blobSize: processedMessage.reactionData.voiceBlob.size,
+      });
+
+      // If we don't have base64 yet, we need to convert
+      if (!processedMessage.reactionData.voiceBase64) {
+        console.log("⚠️ Voice reaction missing base64, will be handled by calling component");
+      }
+    }
+
+    const updatedMessages = [...existingMessages, processedMessage];
+    
+    // Use custom serializer to handle special objects
+    const serializedMessages = JSON.stringify(updatedMessages, this.jsonReplacer);
+    localStorage.setItem(key, serializedMessages);
+
+    console.log("✅ Message added to chat successfully:", {
+      chatKey: key,
+      messageType: processedMessage.type,
+      messageId: processedMessage.id,
+      hasNetflixData: !!processedMessage.clipData?.netflixData,
+      hasVoiceReaction: !!processedMessage.reactionData?.type,
+      totalMessages: updatedMessages.length,
     });
 
-    try {
-      const key = this.getChatKey(userId, participantId, type);
-      const existingMessages = this.getMessagesForChat(
-        userId,
-        participantId,
-        type
-      );
+    // Verify the message was actually stored
+    const verificationMessages = this.getRawMessagesForChat(userId, participantId, type);
+    const messageWasStored = verificationMessages.some(msg => msg.id === message.id);
+    console.log(`🔍 Message storage verification: ${messageWasStored ? 'SUCCESS' : 'FAILED'}`);
 
-      // Check if message already exists (prevent duplicates)
-      const messageExists = existingMessages.some(
-        (msg) => msg.id === message.id
-      );
-
-      if (!messageExists) {
-        // Process Netflix clips if needed
-        let processedMessage =
-          message.type === "clip" && message.clipData?.netflixData
-            ? this.processNetflixClipMessage(message)
-            : message;
-
-        // Special handling for voice reactions - ensure base64 conversion
-        if (
-          processedMessage.reactionData?.voiceBlob &&
-          processedMessage.reactionData?.type === "voice"
-        ) {
-          console.log("🎤 Processing voice reaction for storage:", {
-            hasBlobData: !!processedMessage.reactionData.voiceBlob,
-            hasBase64: !!processedMessage.reactionData.voiceBase64,
-            blobSize: processedMessage.reactionData.voiceBlob.size,
-          });
-
-          // If we don't have base64 yet, we need to convert
-          if (!processedMessage.reactionData.voiceBase64) {
-            console.log(
-              "⚠️ Voice reaction missing base64, will be handled by calling component"
-            );
-          }
-        }
-
-        const updatedMessages = [...existingMessages, processedMessage];
-
-        // Use custom serializer to handle special objects
-        const serializedMessages = JSON.stringify(
-          updatedMessages,
-          this.jsonReplacer
-        );
-        localStorage.setItem(key, serializedMessages);
-
-        console.log("✅ Message added to chat successfully:", {
-          chatKey: key,
-          messageType: processedMessage.type,
-          hasNetflixData: !!processedMessage.clipData?.netflixData,
-          hasVoiceReaction: !!processedMessage.reactionData?.type,
-          totalMessages: updatedMessages.length,
-        });
-      } else {
-        console.log("⚠️ Message already exists, skipping");
-      }
-    } catch (error) {
-      console.error("❌ Error adding message to chat:", error);
-    }
+  } catch (error) {
+    console.error("❌ Error adding message to chat:", error);
+    throw error;
   }
+}
+
+// Add this new method to get raw messages without processing
+private static getRawMessagesForChat(
+  userId: number,
+  participantId: number,
+  type: "friend" | "campfire"
+): ChatMessage[] {
+  try {
+    const key = this.getChatKey(userId, participantId, type);
+    const stored = localStorage.getItem(key);
+
+    if (!stored) {
+      console.log(`📭 No stored messages found for key: ${key}`);
+      return [];
+    }
+
+    const messages: ChatMessage[] = JSON.parse(stored);
+    console.log(`📥 Raw messages loaded for ${key}:`, {
+      count: messages.length,
+    });
+
+    return messages;
+  } catch (error) {
+    console.error("❌ Error getting raw messages for chat:", error);
+    return [];
+  }
+}
 
   // JSON replacer to handle special objects during serialization
   private static jsonReplacer(key: string, value: any): any {
