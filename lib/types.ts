@@ -133,34 +133,40 @@ export interface ChatMessage {
     thumbnail: string;
     duration: string;
     platform: string;
-    // New Netflix-specific fields
+    // Enhanced Netflix-specific fields
     netflixData?: {
       contentId: string;
       startTime: number;
       endTime: number;
       clipId: string;
       sharedFrom: "Netflix";
+      watchUrl?: string; // Optional direct watch URL
     };
   };
   voiceData?: {
     duration: string;
     waveform: number[];
     audioUrl?: string;
-    // New field for voice blob data
+    // Enhanced voice blob data
     voiceBlob?: Blob;
+    isPlaying?: boolean; // Track playback state
   };
   imageData?: {
     url: string;
     caption?: string;
   };
-  // New field for combined clips with reactions
+  // Enhanced reaction data for Netflix clips
   reactionData?: {
     type: "text" | "voice";
     content: string;
     voiceBlob?: Blob;
     voiceDuration?: string;
+    timestamp?: number; // When the reaction was created
+    waveform?: number[]; // Waveform for voice reactions
+    voiceBase64?: string; // Base64 encoded audio for persistence
   };
 }
+
 
 export interface CampfireChat {
   campfireId: number;

@@ -4,8 +4,9 @@ export interface ClipReaction {
   type: "text" | "voice" | "video";
   content: string;
   timestamp: number;
-  voiceBlob?: Blob; // Add voice blob data
-  voiceDuration?: number; // Add voice duration in seconds
+  voiceBlob?: Blob; // Keep for immediate use
+  voiceDuration?: number; // Duration in seconds
+  voiceBase64?: string; // Base64 encoded audio for storage
 }
 
 export interface NetflixClipData {
@@ -59,9 +60,12 @@ interface ClipsState {
   setIsCreating: (isCreating: boolean) => void;
   getSharedClips: () => SharedClip[];
   addSharedClip: (clip: SharedClip) => void;
+  updateClipStatus: (clipId: string, status: SharedClip["status"]) => void;
+  getClipById: (clipId: string) => SharedClip | undefined;
+  clearClips: () => void; // Add method to clear clips
 }
 
-// Import FireStories integration (we'll create this next)
+// Import FireStories integration with proper error handling
 const shareClipToFireStories = async (clip: SharedClip): Promise<boolean> => {
   try {
     // Dynamic import to avoid circular dependencies
@@ -80,20 +84,24 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
   currentClip: null,
   sharedClips: [],
 
-  createClip: async (clipData) => {
+  createClip: async (clipInput) => {
+    // Generate unique IDs
+    const clipId = `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const clipDataId = `clip_data_${Date.now()}`;
+    
     const newClip: SharedClip = {
-      ...clipData,
-      id: `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      ...clipInput,
+      id: clipId,
       createdAt: new Date(),
       status: "pending",
       clipData: {
-        id: `clip_data_${Date.now()}`,
-        contentId: clipData.contentId,
-        contentTitle: clipData.contentTitle,
-        contentThumbnail: clipData.contentThumbnail,
-        startTime: clipData.startTime,
-        endTime: clipData.endTime,
-        duration: clipData.duration,
+        id: clipDataId,
+        contentId: clipInput.contentId,
+        contentTitle: clipInput.contentTitle,
+        contentThumbnail: clipInput.contentThumbnail,
+        startTime: clipInput.startTime,
+        endTime: clipInput.endTime,
+        duration: clipInput.duration,
         timestamp: Date.now(),
       },
       platform: "Netflix",
@@ -106,9 +114,10 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
       recipientCount: newClip.sharedWith.length,
       hasReaction: !!newClip.reaction,
       reactionType: newClip.reaction?.type,
+      voiceReactionDuration: newClip.reaction?.voiceDuration,
     });
 
-    // Update status to processing
+    // Add clip to store with processing status
     set((state) => ({
       sharedClips: [...state.sharedClips, { ...newClip, status: "processing" }],
     }));
@@ -140,17 +149,101 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
         ),
       }));
 
+      // Re-throw error for handling in UI
       throw error;
     }
   },
 
-  setCurrentClip: (clip) => set({ currentClip: clip }),
-  setIsCreating: (isCreating) => set({ isCreating }),
+  setCurrentClip: (clip) => {
+    set({ currentClip: clip });
+  },
 
-  getSharedClips: () => get().sharedClips,
+  setIsCreating: (isCreating) => {
+    set({ isCreating });
+  },
 
-  addSharedClip: (clip) =>
+  getSharedClips: () => {
+    return get().sharedClips;
+  },
+
+  addSharedClip: (clip) => {
     set((state) => ({
       sharedClips: [...state.sharedClips, clip],
-    })),
+    }));
+  },
+
+  updateClipStatus: (clipId, status) => {
+    set((state) => ({
+      sharedClips: state.sharedClips.map((clip) =>
+        clip.id === clipId ? { ...clip, status } : clip
+      ),
+    }));
+  },
+
+  getClipById: (clipId) => {
+    const state = get();
+    return state.sharedClips.find((clip) => clip.id === clipId);
+  },
+
+  clearClips: () => {
+    set({
+      sharedClips: [],
+      currentClip: null,
+      isCreating: false,
+    });
+  },
 }));
+
+// Export helper functions for external use
+export const clipHelpers = {
+  formatDuration: (seconds: number): string => {
+    if (isNaN(seconds) || seconds < 0) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  },
+
+  getClipUrl: (contentId: string, startTime: number): string => {
+    return `/netflix/watch/${contentId}?t=${Math.floor(startTime)}`;
+  },
+
+  validateClipData: (clipData: Partial<SharedClip>): boolean => {
+    return !!(
+      clipData.contentId &&
+      clipData.contentTitle &&
+      clipData.startTime !== undefined &&
+      clipData.endTime !== undefined &&
+      clipData.duration &&
+      clipData.sharedBy &&
+      clipData.sharedWith &&
+      clipData.sharedWith.length > 0 &&
+      clipData.shareTarget
+    );
+  },
+
+  // Helper to create clip data from video player info
+  createClipFromVideoData: (
+    contentId: string,
+    contentTitle: string,
+    contentThumbnail: string,
+    startTime: number,
+    duration: number,
+    sharedBy: { id: number; name: string; avatar: string },
+    sharedWith: number[],
+    shareTarget: "friends" | "campfires",
+    reaction?: ClipReaction
+  ): Omit<SharedClip, "id" | "createdAt" | "status" | "clipData" | "platform"> => {
+    return {
+      contentId,
+      contentTitle,
+      contentThumbnail,
+      startTime,
+      endTime: startTime + duration,
+      duration,
+      sharedBy,
+      sharedWith,
+      shareTarget,
+      reaction,
+    };
+  },
+};

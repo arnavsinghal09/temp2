@@ -18,6 +18,7 @@ import {
 import { useAuthStore } from "../../lib/stores/auth";
 import { useClipsStore } from "../../lib/stores/clips";
 import type { Content } from "../../lib/data/content";
+import { VoiceRecordingVisualizer } from "./VoiceRecordingVisualizer";
 
 interface SocialOverlayProps {
   content: Content;
@@ -92,8 +93,25 @@ export default function SocialOverlay({
   // Voice recording functions
   const startVoiceRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      // Check for MediaRecorder support
+      if (!MediaRecorder.isTypeSupported("audio/webm")) {
+        console.warn("audio/webm not supported, falling back to default");
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : undefined,
+      });
       const chunks: BlobPart[] = [];
 
       mediaRecorder.ondataavailable = (e) => {
@@ -103,7 +121,9 @@ export default function SocialOverlay({
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
+        const blob = new Blob(chunks, {
+          type: mediaRecorder.mimeType || "audio/webm",
+        });
         const url = URL.createObjectURL(blob);
 
         setVoiceRecording((prev) => ({
@@ -115,33 +135,79 @@ export default function SocialOverlay({
         }));
 
         // Stop all tracks to release microphone
-        stream.getTracks().forEach((track) => track.stop());
+        stream.getTracks().forEach((track) => {
+          track.stop();
+          console.log("🎤 Microphone track stopped");
+        });
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onerror = (event) => {
+        console.error("MediaRecorder error:", event);
+        alert("Recording error occurred. Please try again.");
+
+        // Clean up on error
+        stream.getTracks().forEach((track) => track.stop());
+        setVoiceRecording((prev) => ({
+          ...prev,
+          isRecording: false,
+          mediaRecorder: null,
+        }));
+      };
+
+      mediaRecorder.start(100); // Collect data every 100ms
 
       setVoiceRecording((prev) => ({
         ...prev,
         isRecording: true,
         duration: 0,
         mediaRecorder,
+        blob: null,
+        url: null,
       }));
+
+      console.log("🎤 Voice recording started");
 
       // Start duration counter
       const startTime = Date.now();
       const interval = setInterval(() => {
         if (mediaRecorder.state === "recording") {
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
           setVoiceRecording((prev) => ({
             ...prev,
-            duration: Math.floor((Date.now() - startTime) / 1000),
+            duration: elapsed,
           }));
+
+          // Auto-stop after 60 seconds
+          if (elapsed >= 60) {
+            stopVoiceRecording();
+            clearInterval(interval);
+          }
         } else {
           clearInterval(interval);
         }
       }, 1000);
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error starting voice recording:", error);
-      alert("Could not access microphone. Please check permissions.");
+
+      if (error.name === "NotAllowedError") {
+        alert(
+          "Microphone access denied. Please allow microphone access and try again."
+        );
+      } else if (error.name === "NotFoundError") {
+        alert(
+          "No microphone found. Please connect a microphone and try again."
+        );
+      } else {
+        alert(
+          "Could not access microphone. Please check your browser settings and try again."
+        );
+      }
+
+      setVoiceRecording((prev) => ({
+        ...prev,
+        isRecording: false,
+        mediaRecorder: null,
+      }));
     }
   };
 
@@ -150,20 +216,36 @@ export default function SocialOverlay({
       voiceRecording.mediaRecorder &&
       voiceRecording.mediaRecorder.state === "recording"
     ) {
+      console.log("🎤 Stopping voice recording");
       voiceRecording.mediaRecorder.stop();
     }
   };
 
   const playVoiceRecording = () => {
-    if (voiceRecording.url) {
-      const audio = new Audio(voiceRecording.url);
-      audio.play();
+    if (voiceRecording.url && !voiceRecording.isPlaying) {
+      try {
+        const audio = new Audio(voiceRecording.url);
 
-      setVoiceRecording((prev) => ({ ...prev, isPlaying: true }));
+        setVoiceRecording((prev) => ({ ...prev, isPlaying: true }));
 
-      audio.onended = () => {
+        audio.onended = () => {
+          setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
+        };
+
+        audio.onerror = (error) => {
+          console.error("Error playing voice recording:", error);
+          setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
+          alert("Error playing voice recording. Please try recording again.");
+        };
+
+        audio.play().catch((error) => {
+          console.error("Error playing audio:", error);
+          setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
+        });
+      } catch (error) {
+        console.error("Error creating audio player:", error);
         setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
-      };
+      }
     }
   };
 
@@ -180,6 +262,7 @@ export default function SocialOverlay({
       url: null,
       mediaRecorder: null,
     });
+    console.log("🗑️ Voice recording deleted");
   };
 
   const handleShare = async () => {
@@ -192,7 +275,7 @@ export default function SocialOverlay({
       const sharedWith =
         shareTarget === "friends" ? selectedFriends : selectedCampfires;
 
-      // Prepare reaction data
+      // Prepare reaction data with proper blob handling
       let reactionData = undefined;
       if (reactionType === "text" && reactionContent.trim()) {
         reactionData = {
@@ -201,6 +284,12 @@ export default function SocialOverlay({
           timestamp: Date.now(),
         };
       } else if (reactionType === "voice" && voiceRecording.blob) {
+        console.log("🎤 Processing voice reaction:", {
+          blobSize: voiceRecording.blob.size,
+          blobType: voiceRecording.blob.type,
+          duration: voiceRecording.duration,
+        });
+
         reactionData = {
           type: "voice" as const,
           content: "Voice message",
@@ -209,6 +298,7 @@ export default function SocialOverlay({
           voiceDuration: voiceRecording.duration,
         };
       }
+      
 
       const clipData = {
         contentId: content.id,
@@ -256,6 +346,23 @@ export default function SocialOverlay({
       alert("Failed to share clip. Please try again.");
     }
   };
+
+  // Helper function to convert blob to base64
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Failed to convert blob to base64"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+  
 
   const formatTime = (seconds: number) => {
     if (isNaN(seconds) || seconds < 0) return "0:00";
@@ -447,89 +554,17 @@ export default function SocialOverlay({
       {/* Voice Reaction */}
       {reactionType === "voice" && (
         <div className="space-y-4">
-          {!voiceRecording.blob ? (
-            <div className="text-center">
-              <button
-                onClick={
-                  voiceRecording.isRecording
-                    ? stopVoiceRecording
-                    : startVoiceRecording
-                }
-                className={`p-4 rounded-full transition-all duration-300 ${
-                  voiceRecording.isRecording
-                    ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                    : "bg-netflix-red hover:bg-red-700"
-                } text-white`}
-              >
-                {voiceRecording.isRecording ? (
-                  <StopCircle className="h-8 w-8" />
-                ) : (
-                  <Mic className="h-8 w-8" />
-                )}
-              </button>
-              <p className="text-gray-400 mt-2">
-                {voiceRecording.isRecording
-                  ? `Recording... ${formatTime(voiceRecording.duration)}`
-                  : "Tap to record your voice reaction"}
-              </p>
-              {voiceRecording.isRecording && (
-                <div className="flex justify-center mt-4">
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-1 bg-netflix-red rounded-full animate-pulse"
-                        style={{
-                          height: `${Math.random() * 20 + 10}px`,
-                          animationDelay: `${i * 0.1}s`,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-netflix-red rounded-full flex items-center justify-center">
-                    <Mic className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">Voice Reaction</p>
-                    <p className="text-gray-400 text-sm">
-                      {formatTime(voiceRecording.duration)}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={deleteVoiceRecording}
-                  className="text-gray-400 hover:text-red-400 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={playVoiceRecording}
-                  disabled={voiceRecording.isPlaying}
-                  className="flex items-center space-x-2 bg-netflix-red hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  <Play className="h-4 w-4" />
-                  <span>
-                    {voiceRecording.isPlaying ? "Playing..." : "Play"}
-                  </span>
-                </button>
-                <button
-                  onClick={deleteVoiceRecording}
-                  className="text-gray-400 hover:text-red-400 transition-colors text-sm"
-                >
-                  Record again
-                </button>
-              </div>
-            </div>
-          )}
+          <VoiceRecordingVisualizer
+            isRecording={voiceRecording.isRecording}
+            duration={voiceRecording.duration}
+            audioBlob={voiceRecording.blob}
+            audioUrl={voiceRecording.url}
+            onStartRecording={startVoiceRecording}
+            onStopRecording={stopVoiceRecording}
+            onPlayRecording={playVoiceRecording}
+            onDeleteRecording={deleteVoiceRecording}
+            isPlaying={voiceRecording.isPlaying}
+          />
         </div>
       )}
 

@@ -234,6 +234,7 @@ function NetflixClipMessage({
 }) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
+  const [isPlayingReaction, setIsPlayingReaction] = useState(false);
 
   const handlePlayClip = () => {
     if (message.clipData?.netflixData) {
@@ -257,6 +258,150 @@ function NetflixClipMessage({
           router.push("/netflix");
         }
       }
+    }
+  };
+
+  const handlePlayVoiceReaction = async () => {
+    if (isPlayingReaction) return;
+
+    console.log("🎵 Attempting to play voice reaction:", {
+      hasReactionData: !!message.reactionData,
+      reactionType: message.reactionData?.type,
+      hasVoiceBlob: !!message.reactionData?.voiceBlob,
+      hasVoiceBase64: !!message.reactionData?.voiceBase64,
+      voiceDuration: message.reactionData?.voiceDuration,
+    });
+
+    try {
+      let audioBlob = message.reactionData?.voiceBlob;
+
+      // If no blob but have base64, reconstruct the blob
+      if (!audioBlob && message.reactionData?.voiceBase64) {
+        console.log("🔄 Reconstructing blob from base64...");
+        try {
+          audioBlob = base64ToBlob(message.reactionData.voiceBase64);
+          console.log("✅ Blob reconstructed successfully:", audioBlob);
+        } catch (conversionError) {
+          console.error(
+            "❌ Failed to convert base64 to blob:",
+            conversionError
+          );
+        }
+      }
+
+      if (audioBlob && audioBlob instanceof Blob && audioBlob.size > 0) {
+        console.log("🎵 Playing audio blob:", {
+          size: audioBlob.size,
+          type: audioBlob.type,
+        });
+
+        setIsPlayingReaction(true);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.onloadstart = () => {
+          console.log("🎵 Audio loading started");
+        };
+
+        audio.oncanplay = () => {
+          console.log("✅ Audio can play");
+        };
+
+        audio.onended = () => {
+          console.log(" Audio playback ended");
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        audio.onerror = (error) => {
+          console.error("Audio playback error:", error);
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        if (audioBlob.size < 100) {
+          console.error("❌ Blob too small, likely corrupted:", audioBlob);
+          alert("Audio file seems corrupted or too small to play.");
+          return;
+        }
+
+        await audio.play().catch((err) => {
+          console.error("❌ Audio playback failed:", err);
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+        });
+
+        console.log("Audio playback started");
+      } else {
+        console.error("No valid voice data found:", {
+          hasBlob: !!audioBlob,
+          blobSize: audioBlob?.size,
+          blobType: audioBlob?.type,
+          isValidBlob: audioBlob instanceof Blob,
+        });
+        alert(
+          "Voice reaction could not be played. The audio data may be corrupted."
+        );
+      }
+    } catch (error) {
+      setIsPlayingReaction(false);
+      console.error("❌ Error playing voice reaction:", error);
+      alert("Failed to play voice reaction. Please try again.");
+    }
+  };
+
+  // Enhanced base64 to blob conversion with better error handling
+  const base64ToBlob = (base64Data: string): Blob => {
+    try {
+      console.log("🔄 Converting base64 to blob...", {
+        dataLength: base64Data.length,
+        hasDataPrefix: base64Data.startsWith("data:"),
+      });
+
+      // Handle data URL format
+      let base64String = base64Data;
+      let mimeType = "audio/webm";
+
+      if (base64Data.startsWith("data:")) {
+        const parts = base64Data.split(",");
+        if (parts.length === 2) {
+          const header = parts[0];
+          base64String = parts[1];
+
+          // Extract MIME type
+          const mimeMatch = header.match(/data:([^;]+)/);
+          if (mimeMatch) {
+            mimeType = mimeMatch[1];
+          }
+        }
+      }
+
+      console.log("🔄 Decoded base64 info:", {
+        mimeType,
+        base64Length: base64String.length,
+      });
+
+      const byteCharacters = atob(base64String);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const validTypes = ["audio/webm", "audio/mpeg", "audio/mp3", "audio/ogg"];
+      const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
+      const blob = new Blob([byteArray], { type: finalType });
+
+      console.log("✅ Blob created successfully:", {
+        size: blob.size,
+        type: blob.type,
+      });
+
+      return blob;
+    } catch (error:any) {
+      console.error("❌ Error converting base64 to blob:", error);
+      throw new Error(`Failed to convert base64 to blob: ${error.message}`);
     }
   };
 
@@ -331,38 +476,67 @@ function NetflixClipMessage({
         </div>
         <p className="text-[#ff6404] text-xs">{message.clipData?.platform}</p>
 
-        {/* Show reaction if present */}
+        {/* Enhanced reaction display */}
         {message.reactionData && (
-          <div className="mt-2 p-2 bg-gray-900/50 rounded text-xs">
-            <div className="flex items-center space-x-1 mb-1">
+          <div className="mt-3 p-3 bg-gray-900/50 rounded-lg text-xs border border-gray-700">
+            <div className="flex items-center space-x-2 mb-2">
               {message.reactionData.type === "voice" ? (
                 <Mic className="w-3 h-3 text-[#ff6404]" />
               ) : (
                 <span className="text-[#ff6404]">💬</span>
               )}
-              <span className="text-gray-400">Reaction:</span>
+              <span className="text-gray-400 font-medium">Reaction:</span>
             </div>
 
             {message.reactionData.type === "text" ? (
-              <p className="text-white">{message.reactionData.content}</p>
+              <p className="text-white leading-relaxed">
+                {message.reactionData.content}
+              </p>
             ) : (
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Play voice reaction - you could implement this
-                    console.log(
-                      "Playing voice reaction:",
-                      message.reactionData?.voiceBlob
-                    );
-                  }}
-                  className="text-[#ff6404] hover:text-orange-500 transition-colors"
-                >
-                  <Play className="w-3 h-3" />
-                </button>
-                <span className="text-gray-300">
-                  Voice ({message.reactionData.voiceDuration || "0:00"})
-                </span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayVoiceReaction();
+                      }}
+                      disabled={isPlayingReaction}
+                      className={cn(
+                        "flex items-center space-x-1 px-2 py-1 rounded transition-colors",
+                        isPlayingReaction
+                          ? "bg-[#ff6404]/20 text-[#ff6404] cursor-not-allowed"
+                          : "bg-[#ff6404]/10 text-[#ff6404] hover:bg-[#ff6404]/20"
+                      )}
+                    >
+                      {isPlayingReaction ? (
+                        <Pause className="w-3 h-3" />
+                      ) : (
+                        <Play className="w-3 h-3" />
+                      )}
+                      <span className="text-xs">
+                        {isPlayingReaction ? "Playing..." : "Play"}
+                      </span>
+                    </button>
+                    <span className="text-gray-300 text-xs">
+                      ({message.reactionData.voiceDuration || "0:00"})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Voice waveform visualization */}
+                <div className="flex items-center justify-center space-x-1 py-2">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        "w-1 rounded-full transition-all duration-200",
+                        isPlayingReaction ? "bg-[#ff6404]" : "bg-gray-500"
+                      )}
+                      style={{ height: `${Math.sin(index * 0.5) * 8 + 12}px` }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>

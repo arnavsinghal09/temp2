@@ -43,29 +43,76 @@ export class FireStoriesIntegration {
     try {
       console.log("🎬 Sharing Netflix clip to FireStories:", clip);
 
-      // Create the chat message for the clip
-      const clipMessage = this.createClipMessage(clip);
+      // Use the enhanced message system for Netflix clips
+      const { MessageSystem } = await import("@/lib/message-system");
 
-      // Send to friends or campfires based on shareTarget
-      if (clip.shareTarget === "friends") {
-        await this.shareToFriends(clip, clipMessage);
-      } else {
-        await this.shareToCampfires(clip, clipMessage);
+      // Prepare reaction data with proper voice handling
+      let reactionData = undefined;
+      if (clip.reaction) {
+        reactionData = {
+          type: clip.reaction.type,
+          content: clip.reaction.content,
+          voiceDuration: clip.reaction.voiceDuration,
+          voiceBlob: undefined as Blob | undefined,
+          voiceBase64: undefined as string | undefined,
+        };
+
+        // Handle voice blob conversion
+        if (clip.reaction.type === "voice" && clip.reaction.voiceBlob) {
+          try {
+            const base64Audio = await this.blobToBase64(
+              clip.reaction.voiceBlob
+            );
+            reactionData.voiceBlob = clip.reaction.voiceBlob;
+            reactionData.voiceBase64 = base64Audio;
+            console.log("Voice blob converted to base64 for transmission");
+          } catch (error) {
+            console.error("Failed to convert voice blob:", error);
+            // Continue without voice data
+          }
+        }
       }
+
+      // Send using the specialized Netflix clip method
+      MessageSystem.sendNetflixClipMessage(
+        clip.sharedBy.id,
+        clip.sharedWith,
+        clip.shareTarget,
+        clip.clipData,
+        reactionData
+      );
 
       // Store the shared clip in localStorage for persistence
       this.storeSharedClip(clip);
 
-      console.log("✅ Successfully shared clip to FireStories");
+      console.log("✅ Successfully shared Netflix clip to FireStories");
       return true;
     } catch (error) {
-      console.error("❌ Error sharing clip to FireStories:", error);
+      console.error(" Error sharing Netflix clip to FireStories:", error);
       return false;
     }
   }
 
   /**
-   * Create a ChatMessage from a SharedClip
+   * Convert blob to base64 asynchronously
+   */
+  private static blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Failed to convert blob to base64"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /**
+   * Create a ChatMessage from a SharedClip (Legacy method for compatibility)
    */
   private static createClipMessage(clip: SharedClip): FireStoriesChatMessage {
     const baseMessage: FireStoriesChatMessage = {
@@ -118,7 +165,7 @@ export class FireStoriesIntegration {
   }
 
   /**
-   * Share clip to selected friends
+   * Share clip to selected friends (Legacy method for compatibility)
    */
   private static async shareToFriends(
     clip: SharedClip,
@@ -144,7 +191,7 @@ export class FireStoriesIntegration {
   }
 
   /**
-   * Share clip to selected campfires
+   * Share clip to selected campfires (Legacy method for compatibility)
    */
   private static async shareToCampfires(
     clip: SharedClip,
