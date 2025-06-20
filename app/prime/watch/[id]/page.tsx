@@ -17,7 +17,7 @@ interface WatchPageProps {
 export default function WatchPage({ params }: WatchPageProps) {
   const router = useRouter()
   const { id } = params
-  const [isPlaying, setIsPlaying] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(true)
   const [showControls, setShowControls] = useState(true)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -95,18 +95,25 @@ export default function WatchPage({ params }: WatchPageProps) {
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
-          poster={`/placeholder.svg?height=1080&width=1920&text=${encodeURIComponent(content.title + " Video Player")}`}
+          poster={`/placeholder.svg?height=1080&width=1920&text=${encodeURIComponent(
+            content.title + " Video Player"
+          )}`}
           onClick={togglePlay}
           autoPlay
         >
-          <source src="/sample-video.mp4" type="video/mp4" />
+          <source
+            src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+            type="video/mp4"
+          />
           Your browser does not support the video tag.
         </video>
 
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className={`absolute top-6 left-6 z-50 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm ${showControls ? "opacity-100" : "opacity-0"}`}
+          className={`absolute top-6 left-6 z-50 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm ${
+            showControls ? "opacity-100" : "opacity-0"
+          }`}
           aria-label="Go back"
         >
           <X className="w-6 h-6" />
@@ -114,7 +121,9 @@ export default function WatchPage({ params }: WatchPageProps) {
 
         {/* Video Title (only shows briefly) */}
         <div
-          className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-40 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+          className={`absolute top-6 left-1/2 transform -translate-x-1/2 z-40 transition-opacity duration-300 ${
+            showControls ? "opacity-100" : "opacity-0"
+          }`}
         >
           <h1 className="text-white text-xl font-bold bg-black/60 px-6 py-2 rounded-full backdrop-blur-sm">
             {content.title}
@@ -123,7 +132,9 @@ export default function WatchPage({ params }: WatchPageProps) {
 
         {/* Video Controls */}
         <div
-          className={`absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent transition-opacity duration-300 ${
+            showControls ? "opacity-100" : "opacity-0"
+          }`}
         >
           <div className="absolute bottom-0 left-0 right-0 p-8 video-controls">
             {/* Progress Bar */}
@@ -137,7 +148,11 @@ export default function WatchPage({ params }: WatchPageProps) {
                   onChange={handleSeek}
                   className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer transition-all duration-300 group-hover/progress:h-3"
                   style={{
-                    background: `linear-gradient(to right, #00A8E1 0%, #00A8E1 ${duration ? (currentTime / duration) * 100 : 0}%, rgba(255,255,255,0.2) ${duration ? (currentTime / duration) * 100 : 0}%, rgba(255,255,255,0.2) 100%)`,
+                    background: `linear-gradient(to right, #00A8E1 0%, #00A8E1 ${
+                      duration ? (currentTime / duration) * 100 : 0
+                    }%, rgba(255,255,255,0.2) ${
+                      duration ? (currentTime / duration) * 100 : 0
+                    }%, rgba(255,255,255,0.2) 100%)`,
                   }}
                   aria-label="Video progress"
                 />
@@ -158,7 +173,11 @@ export default function WatchPage({ params }: WatchPageProps) {
                   className="bg-white/20 hover:bg-white/30 text-white p-4 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm"
                   aria-label={isPlaying ? "Pause" : "Play"}
                 >
-                  {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8" />
+                  ) : (
+                    <Play className="w-8 h-8 ml-1" />
+                  )}
                 </button>
                 <button
                   className="text-white hover:text-white/80 transition-all duration-300 hover:scale-110"
@@ -210,5 +229,5 @@ export default function WatchPage({ params }: WatchPageProps) {
         <ClipButton currentTime={currentTime} contentTitle={content.title} />
       </div>
     </div>
-  )
+  );
 }

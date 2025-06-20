@@ -1,39 +1,67 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { X, Clock, Users, Share2, Check, Scissors, Sparkles, Smile, Mic } from "lucide-react"
-import Image from "next/image"
-import { ClipOptions,DemoUser,ClipMenuStep } from "../../lib/types/clip"
-import { demoUsers } from "../../lib/data/demoUsers"
-import EmojiPicker from "../ui/EmojiPicker"
-import VoiceRecorder from "../ui/VoiceRecorder"
+import { useState, useEffect } from "react";
+import {
+  X,
+  Clock,
+  Users,
+  Share2,
+  Check,
+  Scissors,
+  Sparkles,
+  Smile,
+  Mic,
+} from "lucide-react";
+import Image from "next/image";
+import {
+  ClipOptions,
+  PrimeUser,
+  PrimeCampfire,
+  ClipMenuStep,
+} from "../../lib/types/clip";
+import { ClipUserDataService } from "../../lib/services/clip-user-data";
+import EmojiPicker from "../ui/EmojiPicker";
+import VoiceRecorder from "../ui/VoiceRecorder";
 
 interface VoiceNote {
-  blob: Blob
-  duration: number
-  url: string
+  blob: Blob;
+  duration: number;
+  url: string;
 }
 
 interface ClipMenuProps {
-  isOpen: boolean
-  onClose: () => void
-  currentTime: number
-  contentTitle: string
+  isOpen: boolean;
+  onClose: () => void;
+  currentTime: number;
+  contentTitle: string;
 }
 
-export default function ClipMenu({ isOpen, onClose, currentTime, contentTitle }: ClipMenuProps) {
-  const [currentStep, setCurrentStep] = useState<ClipMenuStep>("options")
+export default function ClipMenu({
+  isOpen,
+  onClose,
+  currentTime,
+  contentTitle,
+}: ClipMenuProps) {
+  const [currentStep, setCurrentStep] = useState<ClipMenuStep>("options");
   const [clipOptions, setClipOptions] = useState<ClipOptions>({
     duration: 15,
     timestamp: currentTime,
     title: contentTitle,
-  })
-  const [selectedUsers, setSelectedUsers] = useState<DemoUser[]>([])
-  const [message, setMessage] = useState("")
-  const [voiceNote, setVoiceNote] = useState<VoiceNote | null>(null)
-  const [isSharing, setIsSharing] = useState(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false)
+  });
+  const [selectedUsers, setSelectedUsers] = useState<PrimeUser[]>([]);
+  const [selectedCampfires, setSelectedCampfires] = useState<PrimeCampfire[]>(
+    []
+  );
+  const [availableFriends, setAvailableFriends] = useState<PrimeUser[]>([]);
+  const [availableCampfires, setAvailableCampfires] = useState<PrimeCampfire[]>(
+    []
+  );
+
+  const [message, setMessage] = useState("");
+  const [voiceNote, setVoiceNote] = useState<VoiceNote | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
   // Update timestamp when menu opens
   useEffect(() => {
@@ -41,93 +69,143 @@ export default function ClipMenu({ isOpen, onClose, currentTime, contentTitle }:
       setClipOptions((prev) => ({
         ...prev,
         timestamp: currentTime,
-      }))
+      }));
     }
-  }, [isOpen, currentTime])
+  }, [isOpen, currentTime]);
 
   // Reset state when menu closes
   useEffect(() => {
     if (!isOpen) {
-      setCurrentStep("options")
-      setSelectedUsers([])
-      setMessage("")
-      setVoiceNote(null)
-      setIsSharing(false)
-      setShowEmojiPicker(false)
-      setShowVoiceRecorder(false)
+      setCurrentStep("options");
+      setSelectedUsers([]);
+      setMessage("");
+      setVoiceNote(null);
+      setIsSharing(false);
+      setShowEmojiPicker(false);
+      setShowVoiceRecorder(false);
     }
-  }, [isOpen])
+  }, [isOpen]);
+
+  useEffect(() => {
+    const friends = ClipUserDataService.getClipSharingFriends();
+    const campfires = ClipUserDataService.getClipSharingCampfires();
+
+    setAvailableFriends(friends);
+    setAvailableCampfires(campfires);
+
+    console.log("Prime Clip Menu: Loaded user data", {
+      friendsCount: friends.length,
+      campfiresCount: campfires.length,
+      friends: friends.map((f) => f.name),
+      campfires: campfires.map((c) => c.name),
+    });
+  }, []);
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const handleDurationChange = (duration: 15 | 30) => {
-    setClipOptions((prev) => ({ ...prev, duration }))
-  }
+    setClipOptions((prev) => ({ ...prev, duration }));
+  };
 
   const handleTimestampChange = (adjustment: number) => {
     setClipOptions((prev) => ({
       ...prev,
       timestamp: Math.max(0, prev.timestamp + adjustment),
-    }))
-  }
+    }));
+  };
 
-  const handleUserToggle = (user: DemoUser) => {
+  const handleUserToggle = (user: PrimeUser) => {
     setSelectedUsers((prev) => {
-      const isSelected = prev.some((u) => u.id === user.id)
+      const isSelected = prev.some((u) => u.id === user.id);
       if (isSelected) {
-        return prev.filter((u) => u.id !== user.id)
+        return prev.filter((u) => u.id !== user.id);
       } else {
-        return [...prev, user]
+        return [...prev, user];
       }
-    })
-  }
+    });
+  };
+
+  const handleCampfireToggle = (campfire: PrimeCampfire) => {
+    setSelectedCampfires((prev) => {
+      const isSelected = prev.some((c) => c.id === campfire.id);
+      if (isSelected) {
+        return prev.filter((c) => c.id !== campfire.id);
+      } else {
+        return [...prev, campfire];
+      }
+    });
+  };
 
   const handleEmojiSelect = (emoji: string) => {
-    setMessage((prev) => prev + emoji)
-  }
+    setMessage((prev) => prev + emoji);
+  };
 
   const handleVoiceNote = (audioBlob: Blob, duration: number) => {
-    const url = URL.createObjectURL(audioBlob)
-    setVoiceNote({ blob: audioBlob, duration, url })
-  }
+    const url = URL.createObjectURL(audioBlob);
+    setVoiceNote({ blob: audioBlob, duration, url });
+  };
 
   const handleRemoveVoiceNote = () => {
     if (voiceNote) {
-      URL.revokeObjectURL(voiceNote.url)
-      setVoiceNote(null)
+      URL.revokeObjectURL(voiceNote.url);
+      setVoiceNote(null);
     }
-  }
+  };
 
   const handleShare = async () => {
-    if (selectedUsers.length === 0) return
+    const totalSelected = selectedUsers.length + selectedCampfires.length;
+    if (totalSelected === 0) return;
 
-    setIsSharing(true)
+    setIsSharing(true);
 
     // Simulate sharing process
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    setIsSharing(false)
-    setCurrentStep("success")
+    // Here you would integrate with FireStories messaging system
+    console.log("Prime Clip Shared:", {
+      clipOptions,
+      contentTitle,
+      selectedFriends: selectedUsers.map((u) => ({ id: u.id, name: u.name })),
+      selectedCampfires: selectedCampfires.map((c) => ({
+        id: c.id,
+        name: c.name,
+      })),
+      message,
+      hasVoiceNote: !!voiceNote,
+    });
+
+    setIsSharing(false);
+    setCurrentStep("success");
 
     // Auto close after success
     setTimeout(() => {
-      onClose()
-    }, 3000)
-  }
+      onClose();
+    }, 3000);
+  };
 
   const handleProceedToSharing = () => {
-    setCurrentStep("sharing")
-  }
+    setCurrentStep("sharing");
+  };
 
   const handleBackToOptions = () => {
-    setCurrentStep("options")
-  }
+    setCurrentStep("options");
+  };
 
-  if (!isOpen) return null
+  const getSelectedCount = () => {
+    return selectedUsers.length + selectedCampfires.length;
+  };
+
+  const getSelectedNames = () => {
+    const friendNames = selectedUsers.map((user) => user.name);
+    const campfireNames = selectedCampfires.map((campfire) => campfire.name);
+    return [...friendNames, ...campfireNames];
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -140,7 +218,9 @@ export default function ClipMenu({ isOpen, onClose, currentTime, contentTitle }:
               <Scissors className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-white font-bold text-2xl">Clip This Moment</h2>
+              <h2 className="text-white font-bold text-2xl">
+                Clip This Moment
+              </h2>
               <p className="text-gray-400 text-lg">{contentTitle}</p>
             </div>
           </div>
@@ -169,7 +249,11 @@ export default function ClipMenu({ isOpen, onClose, currentTime, contentTitle }:
             {currentStep === "sharing" && (
               <ClipSharingStep
                 selectedUsers={selectedUsers}
+                selectedCampfires={selectedCampfires}
+                availableFriends={availableFriends}
+                availableCampfires={availableCampfires}
                 onUserToggle={handleUserToggle}
+                onCampfireToggle={handleCampfireToggle}
                 message={message}
                 onMessageChange={setMessage}
                 voiceNote={voiceNote}
@@ -189,6 +273,7 @@ export default function ClipMenu({ isOpen, onClose, currentTime, contentTitle }:
             {currentStep === "success" && (
               <ClipSuccessStep
                 selectedUsers={selectedUsers}
+                selectedCampfires={selectedCampfires}
                 clipOptions={clipOptions}
                 formatTime={formatTime}
                 voiceNote={voiceNote}
@@ -198,16 +283,16 @@ export default function ClipMenu({ isOpen, onClose, currentTime, contentTitle }:
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Clip Options Step Component - Enhanced for wider layout
 interface ClipOptionsStepProps {
-  clipOptions: ClipOptions
-  onDurationChange: (duration: 15 | 30) => void
-  onTimestampChange: (adjustment: number) => void
-  onProceed: () => void
-  formatTime: (time: number) => string
+  clipOptions: ClipOptions;
+  onDurationChange: (duration: 15 | 30) => void;
+  onTimestampChange: (adjustment: number) => void;
+  onProceed: () => void;
+  formatTime: (time: number) => string;
 }
 
 function ClipOptionsStep({
@@ -223,7 +308,9 @@ function ClipOptionsStep({
         {/* Left Column - Duration Selection */}
         <div className="space-y-6">
           <div>
-            <label className="block text-white font-semibold text-xl mb-4">Clip Duration</label>
+            <label className="block text-white font-semibold text-xl mb-4">
+              Clip Duration
+            </label>
             <div className="grid grid-cols-2 gap-4">
               {[15, 30].map((duration) => (
                 <button
@@ -244,13 +331,16 @@ function ClipOptionsStep({
 
           {/* Preview Section */}
           <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/30">
-            <h3 className="text-white font-semibold text-lg mb-3">Clip Preview</h3>
+            <h3 className="text-white font-semibold text-lg mb-3">
+              Clip Preview
+            </h3>
             <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center border border-gray-600">
               <div className="text-center text-gray-400">
                 <Scissors className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Clip preview will appear here</p>
                 <p className="text-xs mt-1">
-                  {formatTime(clipOptions.timestamp)} - {formatTime(clipOptions.timestamp + clipOptions.duration)}
+                  {formatTime(clipOptions.timestamp)} -{" "}
+                  {formatTime(clipOptions.timestamp + clipOptions.duration)}
                 </p>
               </div>
             </div>
@@ -260,10 +350,14 @@ function ClipOptionsStep({
         {/* Right Column - Timestamp Selection */}
         <div className="space-y-6">
           <div>
-            <label className="block text-white font-semibold text-xl mb-4">Start Time</label>
+            <label className="block text-white font-semibold text-xl mb-4">
+              Start Time
+            </label>
             <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
               <div className="flex items-center justify-between mb-6">
-                <span className="text-gray-400 text-lg">Current timestamp:</span>
+                <span className="text-gray-400 text-lg">
+                  Current timestamp:
+                </span>
                 <div className="flex items-center space-x-3 text-white font-mono text-2xl">
                   <Clock className="w-6 h-6 text-[#FF6B35]" />
                   <span>{formatTime(clipOptions.timestamp)}</span>
@@ -299,7 +393,11 @@ function ClipOptionsStep({
 
               <div className="text-center text-gray-400 bg-gray-900/50 rounded-lg p-4">
                 <p className="text-base">
-                  Clip will be from <span className="text-white font-mono">{formatTime(clipOptions.timestamp)}</span> to{" "}
+                  Clip will be from{" "}
+                  <span className="text-white font-mono">
+                    {formatTime(clipOptions.timestamp)}
+                  </span>{" "}
+                  to{" "}
                   <span className="text-white font-mono">
                     {formatTime(clipOptions.timestamp + clipOptions.duration)}
                   </span>
@@ -319,31 +417,35 @@ function ClipOptionsStep({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Clip Sharing Step Component - Enhanced for wider layout
 interface ClipSharingStepProps {
-  selectedUsers: DemoUser[]
-  onUserToggle: (user: DemoUser) => void
-  message: string
-  onMessageChange: (message: string) => void
-  voiceNote: VoiceNote | null
-  onVoiceNote: (audioBlob: Blob, duration: number) => void
-  onRemoveVoiceNote: () => void
-  onShare: () => void
-  onBack: () => void
-  isSharing: boolean
-  showEmojiPicker: boolean
-  setShowEmojiPicker: (show: boolean) => void
-  showVoiceRecorder: boolean
-  setShowVoiceRecorder: (show: boolean) => void
-  onEmojiSelect: (emoji: string) => void
+  selectedUsers: PrimeUser[];
+  onUserToggle: (user: PrimeUser) => void;
+  message: string;
+  onMessageChange: (message: string) => void;
+  voiceNote: VoiceNote | null;
+  onVoiceNote: (audioBlob: Blob, duration: number) => void;
+  onRemoveVoiceNote: () => void;
+  onShare: () => void;
+  onBack: () => void;
+  isSharing: boolean;
+  showEmojiPicker: boolean;
+  setShowEmojiPicker: (show: boolean) => void;
+  showVoiceRecorder: boolean;
+  setShowVoiceRecorder: (show: boolean) => void;
+  onEmojiSelect: (emoji: string) => void;
 }
 
 function ClipSharingStep({
   selectedUsers,
+  selectedCampfires,
+  availableFriends,
+  availableCampfires,
   onUserToggle,
+  onCampfireToggle,
   message,
   onMessageChange,
   voiceNote,
@@ -358,58 +460,170 @@ function ClipSharingStep({
   setShowVoiceRecorder,
   onEmojiSelect,
 }: ClipSharingStepProps) {
+  const [activeTab, setActiveTab] = useState<"friends" | "campfires">(
+    "friends"
+  );
+
   return (
     <div className="max-w-4xl mx-auto h-full flex flex-col">
       {/* Header */}
       <div className="text-center flex-shrink-0 mb-6">
-        <h3 className="text-white font-semibold text-2xl mb-3">Share with Friends</h3>
+        <h3 className="text-white font-semibold text-2xl mb-3">
+          Share with Friends
+        </h3>
         <p className="text-gray-400 text-lg">
-          {selectedUsers.length} friend{selectedUsers.length !== 1 ? "s" : ""} selected
+          {selectedUsers.length + selectedCampfires.length} recipient
+          {selectedUsers.length + selectedCampfires.length !== 1
+            ? "s"
+            : ""}{" "}
+          selected
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0">
-        {/* Left Column - Friends List */}
+        {/* Left Column - Friends and Campfires List */}
         <div className="flex flex-col min-h-0">
-          <h4 className="text-white font-medium text-lg mb-4">Select Friends</h4>
+          <div className="flex space-x-1 bg-gray-800 rounded-lg p-1 mb-4">
+            <button
+              onClick={() => setActiveTab("friends")}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+                activeTab === "friends"
+                  ? "bg-[#00A8E1] text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              <span>Friends ({availableFriends.length})</span>
+              {selectedUsers.length > 0 && (
+                <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {selectedUsers.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("campfires")}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+                activeTab === "campfires"
+                  ? "bg-[#00A8E1] text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              <span>Campfires ({availableCampfires.length})</span>
+              {selectedCampfires.length > 0 && (
+                <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {selectedCampfires.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           <div className="flex-1 min-h-0">
             <div className="h-full max-h-80 overflow-y-auto space-y-3 custom-scrollbar pr-3">
-              {demoUsers.map((user) => {
-                const isSelected = selectedUsers.some((u) => u.id === user.id)
-                return (
-                  <button
-                    key={user.id}
-                    onClick={() => onUserToggle(user)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all duration-200 flex items-center space-x-4 ${
-                      isSelected
-                        ? "border-[#FF6B35] bg-[#FF6B35]/10"
-                        : "border-gray-700 hover:border-gray-600 hover:bg-white/5"
-                    }`}
-                  >
-                    <div className="relative flex-shrink-0">
-                      <Image
-                        src={user.avatar || "/placeholder.svg"}
-                        alt={user.name}
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
-                      {user.isOnline && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#1a1a1a]"></div>
-                      )}
+              {activeTab === "friends" && (
+                <>
+                  {availableFriends.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 text-gray-600 mx-auto mb-2" />
+                      <p className="text-gray-400">No friends available</p>
+                      <p className="text-gray-500 text-sm">
+                        Add friends on FireStories to share clips
+                      </p>
                     </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="text-white font-medium text-lg truncate">{user.name}</div>
-                      <div className="text-gray-400 truncate">{user.username}</div>
+                  ) : (
+                    availableFriends.map((user) => {
+                      const isSelected = selectedUsers.some(
+                        (u) => u.id === user.id
+                      );
+                      return (
+                        <button
+                          key={user.id}
+                          onClick={() => onUserToggle(user)}
+                          className={`w-full p-4 rounded-xl border-2 transition-all duration-200 flex items-center space-x-4 ${
+                            isSelected
+                              ? "border-[#00A8E1] bg-[#00A8E1]/10"
+                              : "border-gray-700 hover:border-gray-600 hover:bg-white/5"
+                          }`}
+                        >
+                          <div className="relative flex-shrink-0">
+                            <Image
+                              src={user.avatar || "/placeholder.svg"}
+                              alt={user.name}
+                              width={48}
+                              height={48}
+                              className="rounded-full"
+                            />
+                            {user.isOnline && (
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#1a1a1a]"></div>
+                            )}
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="text-white font-medium text-lg truncate">
+                              {user.name}
+                            </div>
+                            <div className="text-gray-400 truncate">
+                              {user.username}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="w-7 h-7 bg-[#00A8E1] rounded-full flex items-center justify-center flex-shrink-0">
+                              <Check className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </>
+              )}
+
+              {activeTab === "campfires" && (
+                <>
+                  {availableCampfires.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 text-gray-600 mx-auto mb-2" />
+                      <p className="text-gray-400">No campfires available</p>
+                      <p className="text-gray-500 text-sm">
+                        Join campfires on FireStories to share clips
+                      </p>
                     </div>
-                    {isSelected && (
-                      <div className="w-7 h-7 bg-[#FF6B35] rounded-full flex items-center justify-center flex-shrink-0">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
+                  ) : (
+                    availableCampfires.map((campfire) => {
+                      const isSelected = selectedCampfires.some(
+                        (c) => c.id === campfire.id
+                      );
+                      return (
+                        <button
+                          key={campfire.id}
+                          onClick={() => onCampfireToggle(campfire)}
+                          className={`w-full p-4 rounded-xl border-2 transition-all duration-200 flex items-center space-x-4 ${
+                            isSelected
+                              ? "border-[#00A8E1] bg-[#00A8E1]/10"
+                              : "border-gray-700 hover:border-gray-600 hover:bg-white/5"
+                          }`}
+                        >
+                          <div className="w-10 h-10 bg-gradient-to-br from-[#00A8E1] to-blue-600 rounded-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <p className="text-white font-medium">
+                              {campfire.name}
+                            </p>
+                            <p className="text-gray-400 text-sm">
+                              {campfire.memberCount} members
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <div className="w-7 h-7 bg-[#00A8E1] rounded-full flex items-center justify-center flex-shrink-0">
+                              <Check className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -421,13 +635,14 @@ function ClipSharingStep({
             <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 mb-4 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-[#FF6B35] rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#00A8E1] rounded-full flex items-center justify-center">
                     <Mic className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <div className="text-white font-medium">Voice Note</div>
                     <div className="text-gray-400 text-sm">
-                      {Math.floor(voiceNote.duration / 60)}:{(voiceNote.duration % 60).toString().padStart(2, "0")}
+                      {Math.floor(voiceNote.duration / 60)}:
+                      {(voiceNote.duration % 60).toString().padStart(2, "0")}
                     </div>
                   </div>
                 </div>
@@ -435,7 +650,7 @@ function ClipSharingStep({
                   onClick={onRemoveVoiceNote}
                   className="text-gray-400 hover:text-white transition-colors duration-200 p-2"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -443,13 +658,15 @@ function ClipSharingStep({
 
           {/* Message Input - Flexible height */}
           <div className="flex-1 min-h-0 flex flex-col">
-            <label className="block text-white font-medium text-lg mb-3 flex-shrink-0">Add a message (optional)</label>
+            <label className="block text-white font-medium text-lg mb-3 flex-shrink-0">
+              Add a message (optional)
+            </label>
             <div className="relative flex-1 min-h-0 flex flex-col">
               <textarea
                 value={message}
                 onChange={(e) => onMessageChange(e.target.value)}
                 placeholder="Say something about this clip..."
-                className="w-full flex-1 min-h-[120px] max-h-[200px] p-4 pr-24 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 resize-none focus:border-[#FF6B35] focus:outline-none transition-colors duration-200 text-base"
+                className="w-full flex-1 min-h-[120px] max-h-[200px] p-4 pr-24 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 resize-none focus:border-[#00A8E1] focus:outline-none transition-colors duration-200 text-base"
               />
 
               {/* Input Actions - Positioned absolutely */}
@@ -457,10 +674,10 @@ function ClipSharingStep({
                 <div className="relative">
                   <button
                     onClick={() => {
-                      setShowEmojiPicker(!showEmojiPicker)
-                      setShowVoiceRecorder(false)
+                      setShowEmojiPicker(!showEmojiPicker);
+                      setShowVoiceRecorder(false);
                     }}
-                    className="p-2 text-gray-400 hover:text-[#FF6B35] transition-colors duration-200 bg-gray-700/50 rounded-lg"
+                    className="p-2 text-gray-400 hover:text-[#00A8E1] transition-colors duration-200 bg-gray-700/50 rounded-lg"
                   >
                     <Smile className="w-5 h-5" />
                   </button>
@@ -474,10 +691,10 @@ function ClipSharingStep({
                 <div className="relative">
                   <button
                     onClick={() => {
-                      setShowVoiceRecorder(!showVoiceRecorder)
-                      setShowEmojiPicker(false)
+                      setShowVoiceRecorder(!showVoiceRecorder);
+                      setShowEmojiPicker(false);
                     }}
-                    className="p-2 text-gray-400 hover:text-[#FF6B35] transition-colors duration-200 bg-gray-700/50 rounded-lg"
+                    className="p-2 text-gray-400 hover:text-[#00A8E1] transition-colors duration-200 bg-gray-700/50 rounded-lg"
                   >
                     <Mic className="w-5 h-5" />
                   </button>
@@ -501,8 +718,11 @@ function ClipSharingStep({
             </button>
             <button
               onClick={onShare}
-              disabled={selectedUsers.length === 0 || isSharing}
-              className="flex-1 py-4 px-6 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white font-bold rounded-xl hover:shadow-lg hover:shadow-[#FF6B35]/25 transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              disabled={
+                selectedUsers.length + selectedCampfires.length === 0 ||
+                isSharing
+              }
+              className="flex-1 py-4 px-6 bg-gradient-to-r from-[#00A8E1] to-blue-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-[#00A8E1]/25 transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
             >
               {isSharing ? (
                 <>
@@ -520,18 +740,49 @@ function ClipSharingStep({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Clip Success Step Component - Enhanced for wider layout
-interface ClipSuccessStepProps {
-  selectedUsers: DemoUser[]
-  clipOptions: ClipOptions
-  formatTime: (time: number) => string
-  voiceNote: VoiceNote | null
+interface ClipSharingStepProps {
+  selectedUsers: PrimeUser[];
+  selectedCampfires: PrimeCampfire[];
+  availableFriends: PrimeUser[];
+  availableCampfires: PrimeCampfire[];
+  onUserToggle: (user: PrimeUser) => void;
+  onCampfireToggle: (campfire: PrimeCampfire) => void;
+  message: string;
+  onMessageChange: (message: string) => void;
+  voiceNote: VoiceNote | null;
+  onVoiceNote: (audioBlob: Blob, duration: number) => void;
+  onRemoveVoiceNote: () => void;
+  onShare: () => void;
+  onBack: () => void;
+  isSharing: boolean;
+  showEmojiPicker: boolean;
+  setShowEmojiPicker: (show: boolean) => void;
+  showVoiceRecorder: boolean;
+  setShowVoiceRecorder: (show: boolean) => void;
+  onEmojiSelect: (emoji: string) => void;
 }
 
-function ClipSuccessStep({ selectedUsers, clipOptions, formatTime, voiceNote }: ClipSuccessStepProps) {
+interface ClipSuccessStepProps {
+  selectedUsers: PrimeUser[];
+  selectedCampfires: PrimeCampfire[];
+  clipOptions: ClipOptions;
+  formatTime: (time: number) => string;
+  voiceNote: VoiceNote | null;
+}
+
+function ClipSuccessStep({
+  selectedUsers,
+  selectedCampfires,
+  clipOptions,
+  formatTime,
+  voiceNote,
+}: ClipSuccessStepProps) {
+  const totalRecipients = selectedUsers.length + selectedCampfires.length;
+
   return (
     <div className="max-w-3xl mx-auto text-center space-y-8">
       {/* Success Icon */}
@@ -541,38 +792,70 @@ function ClipSuccessStep({ selectedUsers, clipOptions, formatTime, voiceNote }: 
 
       {/* Success Message */}
       <div>
-        <h3 className="text-white font-bold text-3xl mb-4">Clip Shared Successfully!</h3>
+        <h3 className="text-white font-bold text-3xl mb-4">
+          Clip Shared Successfully!
+        </h3>
         <p className="text-gray-400 text-xl">
-          Your {clipOptions.duration}s clip from {formatTime(clipOptions.timestamp)} has been shared with{" "}
-          {selectedUsers.length} friend{selectedUsers.length !== 1 ? "s" : ""}
+          Your {clipOptions.duration}s clip from{" "}
+          {formatTime(clipOptions.timestamp)} has been shared with{" "}
+          {totalRecipients} recipient{totalRecipients !== 1 ? "s" : ""}
           {voiceNote && " with a voice note"}
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Shared Users */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
-          <div className="text-white font-medium text-lg mb-4">Shared with:</div>
-          <div className="flex flex-wrap gap-3">
-            {selectedUsers.map((user) => (
-              <div key={user.id} className="flex items-center space-x-3 bg-gray-700/50 rounded-full px-4 py-2">
-                <Image
-                  src={user.avatar || "/placeholder.svg"}
-                  alt={user.name}
-                  width={24}
-                  height={24}
-                  className="rounded-full"
-                />
-                <span className="text-white">{user.name}</span>
-              </div>
-            ))}
+        {selectedUsers.length > 0 && (
+          <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+            <div className="text-white font-medium text-lg mb-4">
+              Shared with friends:
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {selectedUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center space-x-3 bg-gray-700/50 rounded-full px-4 py-2"
+                >
+                  <Image
+                    src={user.avatar || "/placeholder.svg"}
+                    alt={user.name}
+                    width={24}
+                    height={24}
+                    className="rounded-full"
+                  />
+                  <span className="text-white">{user.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Shared Campfires */}
+        {selectedCampfires.length > 0 && (
+          <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+            <div className="text-white font-medium text-lg mb-4">
+              Shared with campfires:
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {selectedCampfires.map((campfire) => (
+                <div
+                  key={campfire.id}
+                  className="flex items-center space-x-3 bg-gray-700/50 rounded-full px-4 py-2"
+                >
+                  <div className="w-6 h-6 bg-gradient-to-br from-[#00A8E1] to-blue-600 rounded-full flex items-center justify-center">
+                    <Users className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-white">{campfire.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Attachments */}
         {voiceNote && (
           <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
-            <div className="flex items-center justify-center space-x-3 text-[#FF6B35]">
+            <div className="flex items-center justify-center space-x-3 text-[#00A8E1]">
               <Mic className="w-6 h-6" />
               <span className="font-medium text-lg">Voice note attached</span>
             </div>
@@ -584,14 +867,19 @@ function ClipSuccessStep({ selectedUsers, clipOptions, formatTime, voiceNote }: 
       <div className="bg-gradient-to-r from-[#FF6B35]/10 to-[#FF8C42]/10 border border-[#FF6B35]/20 rounded-xl p-6">
         <div className="flex items-center justify-center space-x-3 mb-3">
           <Sparkles className="w-6 h-6 text-[#FF6B35]" />
-          <span className="text-white font-medium text-xl">View on FireStories</span>
+          <span className="text-white font-medium text-xl">
+            View on FireStories
+          </span>
         </div>
         <p className="text-gray-400 text-lg">
-          Your clip is now live on FireStories! Friends will be notified and can view it there.
+          Your clip is now live on FireStories! Friends will be notified and can
+          view it there.
         </p>
       </div>
 
-      <div className="text-gray-400">This menu will close automatically in a few seconds...</div>
+      <div className="text-gray-400">
+        This menu will close automatically in a few seconds...
+      </div>
     </div>
-  )
+  );
 }
