@@ -222,11 +222,13 @@ export const contentRows: ContentRow[] = [
   },
 ];
 
-export const mostContactedCampfires: Campfire[] = [
+// Updated campfires with specific member associations
+export const ALL_CAMPFIRES: Campfire[] = [
   {
     id: 1,
     name: "Movie Night Squad",
-    members: ["Arnav", "Divya", "Rahul", "Priya"],
+    members: ["Ashu Sharma", "Aryav Gupta", "Divya Sharma"], // Users 1, 2, 4
+    memberIds: [1, 2, 4],
     avatar: "/placeholder.svg?height=60&width=60",
     lastActivity: "2 min ago",
     messageCount: 47,
@@ -235,8 +237,9 @@ export const mostContactedCampfires: Campfire[] = [
   },
   {
     id: 2,
-    name: "Binge Watchers",
-    members: ["Arnav", "Divya", "Karan"],
+    name: "Binge Busters",
+    members: ["Ashu Sharma", "Arnav Nigam"], // Users 1, 3
+    memberIds: [1, 3],
     avatar: "/placeholder.svg?height=60&width=60",
     lastActivity: "1 hour ago",
     messageCount: 23,
@@ -246,7 +249,8 @@ export const mostContactedCampfires: Campfire[] = [
   {
     id: 3,
     name: "Weekend Warriors",
-    members: ["Arnav", "Divya", "Sanya", "Vikram", "Neha"],
+    members: ["Aryav Gupta", "Arnav Nigam"], // Users 2, 3
+    memberIds: [2, 3],
     avatar: "/placeholder.svg?height=60&width=60",
     lastActivity: "3 hours ago",
     messageCount: 31,
@@ -255,6 +259,14 @@ export const mostContactedCampfires: Campfire[] = [
   },
 ];
 
+// Function to get campfires for a specific user
+export const getCampfiresForUser = (userId: number): Campfire[] => {
+  return ALL_CAMPFIRES.filter((campfire) =>
+    campfire.memberIds.includes(userId)
+  );
+};
+
+// Updated clips to reflect new user names
 export const mostSharedClips: Clip[] = [
   {
     id: 1,
@@ -265,7 +277,7 @@ export const mostSharedClips: Clip[] = [
     views: 1247,
     likes: 89,
     shares: 23,
-    sharedBy: "Arnav",
+    sharedBy: "Ashu Sharma",
     timestamp: "2 hours ago",
     campfire: "Movie Night Squad",
   },
@@ -278,9 +290,9 @@ export const mostSharedClips: Clip[] = [
     views: 892,
     likes: 67,
     shares: 18,
-    sharedBy: "Divya",
+    sharedBy: "Aryav Gupta",
     timestamp: "5 hours ago",
-    campfire: "Binge Watchers",
+    campfire: "Binge Busters",
   },
   {
     id: 3,
@@ -291,16 +303,17 @@ export const mostSharedClips: Clip[] = [
     views: 654,
     likes: 45,
     shares: 12,
-    sharedBy: "Rahul",
+    sharedBy: "Arnav Nigam",
     timestamp: "1 day ago",
     campfire: "Weekend Warriors",
   },
 ];
 
+// Updated top sharers with new user names
 export const topSharers: TopSharer[] = [
   {
     id: 1,
-    name: "Arnav",
+    name: "Ashu Sharma",
     clips: 47,
     badge: "Clip Champ",
     avatar: "/placeholder.svg?height=40&width=40",
@@ -308,7 +321,7 @@ export const topSharers: TopSharer[] = [
   },
   {
     id: 2,
-    name: "Divya",
+    name: "Aryav Gupta",
     clips: 32,
     badge: "Trendsetter",
     avatar: "/placeholder.svg?height=40&width=40",
@@ -316,7 +329,7 @@ export const topSharers: TopSharer[] = [
   },
   {
     id: 3,
-    name: "Rahul",
+    name: "Arnav Nigam",
     clips: 28,
     badge: "ClipMaster",
     avatar: "/placeholder.svg?height=40&width=40",
@@ -324,7 +337,7 @@ export const topSharers: TopSharer[] = [
   },
   {
     id: 4,
-    name: "Priya",
+    name: "Divya Sharma",
     clips: 19,
     badge: "Rising Star",
     avatar: "/placeholder.svg?height=40&width=40",
@@ -332,24 +345,25 @@ export const topSharers: TopSharer[] = [
   },
 ];
 
+// Updated weekly digest with new user names
 export const weeklyDigest: WeeklyDigestUser[] = [
   {
     id: 1,
-    name: "Sanya",
+    name: "Ashu Sharma",
     views: 2847,
     engagement: "94%",
     avatar: "/placeholder.svg?height=40&width=40",
   },
   {
     id: 2,
-    name: "Vikram",
+    name: "Aryav Gupta",
     views: 2103,
     engagement: "87%",
     avatar: "/placeholder.svg?height=40&width=40",
   },
   {
     id: 3,
-    name: "Neha",
+    name: "Arnav Nigam",
     views: 1756,
     engagement: "82%",
     avatar: "/placeholder.svg?height=40&width=40",
@@ -387,11 +401,12 @@ export const achievements: Achievement[] = [
   },
 ];
 
+// Updated notifications with new user names
 export const notifications: Notification[] = [
   {
     id: 1,
     type: "clip",
-    sender: "Arnav",
+    sender: "Ashu Sharma",
     message: "shared a clip with you!",
     timestamp: "2 min ago",
     campfire: "Movie Night Squad",
@@ -408,10 +423,11 @@ export const notifications: Notification[] = [
   },
 ];
 
+// Updated friends data - now returns all other users as friends
 export const onlineFriends: Friend[] = [
   {
     id: 1,
-    name: "Arnav",
+    name: "Ashu Sharma",
     status: "Watching Netflix",
     avatar: "/placeholder.svg?height=50&width=50",
     isOnline: true,
@@ -419,7 +435,7 @@ export const onlineFriends: Friend[] = [
   },
   {
     id: 2,
-    name: "Divya",
+    name: "Aryav Gupta",
     status: "Watching Prime Video",
     avatar: "/placeholder.svg?height=50&width=50",
     isOnline: true,
@@ -427,7 +443,7 @@ export const onlineFriends: Friend[] = [
   },
   {
     id: 3,
-    name: "Rahul",
+    name: "Arnav Nigam",
     status: "Available",
     avatar: "/placeholder.svg?height=50&width=50",
     isOnline: true,
@@ -439,24 +455,8 @@ export const allFriends: Friend[] = [
   ...onlineFriends,
   {
     id: 4,
-    name: "Priya",
+    name: "Divya Sharma",
     status: "Offline",
-    avatar: "/placeholder.svg?height=50&width=50",
-    isOnline: false,
-    currentShow: null,
-  },
-  {
-    id: 5,
-    name: "Karan",
-    status: "Offline",
-    avatar: "/placeholder.svg?height=50&width=50",
-    isOnline: false,
-    currentShow: null,
-  },
-  {
-    id: 6,
-    name: "Sanya",
-    status: "Away",
     avatar: "/placeholder.svg?height=50&width=50",
     isOnline: false,
     currentShow: null,
@@ -466,34 +466,35 @@ export const allFriends: Friend[] = [
 export const friendRequests: FriendRequest[] = [
   {
     id: 1,
-    name: "Vikram",
-    mutualFriends: 3,
+    name: "New User 1",
+    mutualFriends: 2,
     avatar: "/placeholder.svg?height=50&width=50",
   },
   {
     id: 2,
-    name: "Neha",
+    name: "New User 2",
     mutualFriends: 1,
     avatar: "/placeholder.svg?height=50&width=50",
   },
 ];
 
+// Updated campfire chats with new user names and campfire associations
 export const campfireChats: CampfireChat[] = [
   {
-    campfireId: 1,
+    campfireId: 1, // Movie Night Squad - Ashu, Aryav, Divya
     messages: [
       {
         id: 1,
         type: "system",
         sender: "System",
-        content: 'Arnav created the campfire "Movie Night Squad"',
+        content: 'Ashu Sharma created the campfire "Movie Night Squad"',
         timestamp: "2 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
       {
         id: 2,
         type: "text",
-        sender: "Arnav",
+        sender: "Ashu Sharma",
         content: "Hey everyone! Ready for tonight's movie marathon? 🍿",
         timestamp: "1 day ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -501,7 +502,7 @@ export const campfireChats: CampfireChat[] = [
       {
         id: 3,
         type: "clip",
-        sender: "Divya",
+        sender: "Aryav Gupta",
         content: "Check out this epic scene from Breaking Bad!",
         timestamp: "1 day ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -514,99 +515,30 @@ export const campfireChats: CampfireChat[] = [
       },
       {
         id: 4,
-        type: "voice",
-        sender: "Rahul",
-        content: "Voice message",
-        timestamp: "18 hours ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        voiceData: {
-          duration: "0:23",
-          waveform: [
-            0.2, 0.5, 0.8, 0.3, 0.7, 0.4, 0.9, 0.1, 0.6, 0.8, 0.2, 0.5,
-          ],
-        },
-      },
-      {
-        id: 5,
         type: "text",
-        sender: "Priya",
+        sender: "Divya Sharma",
         content:
           "That Breaking Bad scene gave me chills! Walter White is such a complex character 😱",
         timestamp: "16 hours ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
-      {
-        id: 6,
-        type: "image",
-        sender: "Arnav",
-        content: "Movie night setup ready! 🎬",
-        timestamp: "12 hours ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        imageData: {
-          url: "/placeholder.svg?height=300&width=400",
-          caption: "Cozy movie night setup with popcorn and drinks",
-        },
-      },
-      {
-        id: 7,
-        type: "clip",
-        sender: "Divya",
-        content: "This Stranger Things scene is so intense!",
-        timestamp: "8 hours ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        clipData: {
-          title: "Stranger Things - Upside Down",
-          thumbnail: "/placeholder.svg?height=120&width=200",
-          duration: "0:32",
-          platform: "Netflix",
-        },
-      },
-      {
-        id: 8,
-        type: "text",
-        sender: "Rahul",
-        content:
-          "Can we watch The Office next? I need some comedy after all this drama 😂",
-        timestamp: "6 hours ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 9,
-        type: "voice",
-        sender: "Priya",
-        content: "Voice message",
-        timestamp: "4 hours ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        voiceData: {
-          duration: "0:15",
-          waveform: [0.3, 0.6, 0.4, 0.8, 0.2, 0.7, 0.5, 0.9, 0.1, 0.6],
-        },
-      },
-      {
-        id: 10,
-        type: "text",
-        sender: "Arnav",
-        content: "Great idea! The Office it is. Jim's pranks never get old 🤣",
-        timestamp: "2 hours ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
     ],
   },
   {
-    campfireId: 2,
+    campfireId: 2, // Binge Busters - Ashu, Arnav
     messages: [
       {
         id: 1,
         type: "system",
         sender: "System",
-        content: 'Divya created the campfire "Binge Watchers"',
+        content: 'Ashu Sharma created the campfire "Binge Busters"',
         timestamp: "3 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
       {
         id: 2,
         type: "text",
-        sender: "Divya",
+        sender: "Ashu Sharma",
         content: "Welcome to the ultimate binge-watching crew! 📺",
         timestamp: "3 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -614,7 +546,7 @@ export const campfireChats: CampfireChat[] = [
       {
         id: 3,
         type: "clip",
-        sender: "Karan",
+        sender: "Arnav Nigam",
         content: "The Boys season finale was insane!",
         timestamp: "2 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -625,45 +557,23 @@ export const campfireChats: CampfireChat[] = [
           platform: "Prime Video",
         },
       },
-      {
-        id: 4,
-        type: "text",
-        sender: "Arnav",
-        content: "Homelander is terrifying but such a well-written villain!",
-        timestamp: "2 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 5,
-        type: "voice",
-        sender: "Divya",
-        content: "Voice message",
-        timestamp: "1 day ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        voiceData: {
-          duration: "0:28",
-          waveform: [
-            0.4, 0.7, 0.3, 0.8, 0.5, 0.9, 0.2, 0.6, 0.4, 0.8, 0.3, 0.7,
-          ],
-        },
-      },
     ],
   },
   {
-    campfireId: 3,
+    campfireId: 3, // Weekend Warriors - Aryav, Arnav
     messages: [
       {
         id: 1,
         type: "system",
         sender: "System",
-        content: 'Sanya created the campfire "Weekend Warriors"',
+        content: 'Aryav Gupta created the campfire "Weekend Warriors"',
         timestamp: "1 week ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
       {
         id: 2,
         type: "text",
-        sender: "Sanya",
+        sender: "Aryav Gupta",
         content: "Weekend movie marathons start here! Who's ready? 🎉",
         timestamp: "1 week ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -671,37 +581,24 @@ export const campfireChats: CampfireChat[] = [
       {
         id: 3,
         type: "text",
-        sender: "Vikram",
+        sender: "Arnav Nigam",
         content: "Count me in! What are we watching first?",
         timestamp: "6 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 4,
-        type: "clip",
-        sender: "Neha",
-        content: "This Marvel scene is everything!",
-        timestamp: "5 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        clipData: {
-          title: "Avengers - Epic Battle",
-          thumbnail: "/placeholder.svg?height=120&width=200",
-          duration: "2:15",
-          platform: "Disney+",
-        },
       },
     ],
   },
 ];
 
+// Updated friend chats with new user names
 export const friendChats: FriendChat[] = [
   {
-    friendId: 1,
+    friendId: 1, // Ashu Sharma
     messages: [
       {
         id: 1,
         type: "text",
-        sender: "Arnav",
+        sender: "Ashu Sharma",
         content: "Hey! Did you watch the new episode of Stranger Things?",
         timestamp: "2 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -714,37 +611,15 @@ export const friendChats: FriendChat[] = [
         timestamp: "2 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
-      {
-        id: 3,
-        type: "voice",
-        sender: "Arnav",
-        content: "Voice message",
-        timestamp: "1 day ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        voiceData: {
-          duration: "0:18",
-          waveform: [
-            0.3, 0.5, 0.7, 0.4, 0.6, 0.8, 0.3, 0.9, 0.5, 0.2, 0.7, 0.4,
-          ],
-        },
-      },
-      {
-        id: 4,
-        type: "text",
-        sender: "You",
-        content: "I'll watch it tonight and let you know what I think!",
-        timestamp: "1 day ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
     ],
   },
   {
-    friendId: 2,
+    friendId: 2, // Aryav Gupta
     messages: [
       {
         id: 1,
         type: "text",
-        sender: "Divya",
+        sender: "Aryav Gupta",
         content: "Have you seen The Boys yet? It's amazing!",
         timestamp: "3 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -757,41 +632,15 @@ export const friendChats: FriendChat[] = [
         timestamp: "3 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
-      {
-        id: 3,
-        type: "clip",
-        sender: "Divya",
-        content: "This scene had me on the edge of my seat!",
-        timestamp: "2 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        clipData: {
-          title: "The Boys - Shocking Moment",
-          thumbnail: "/placeholder.svg?height=120&width=200",
-          duration: "0:42",
-          platform: "Prime Video",
-        },
-      },
-      {
-        id: 4,
-        type: "image",
-        sender: "You",
-        content: "Check out my watch party setup!",
-        timestamp: "1 day ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        imageData: {
-          url: "/placeholder.svg?height=300&width=400",
-          caption: "Ready for The Boys marathon",
-        },
-      },
     ],
   },
   {
-    friendId: 3,
+    friendId: 3, // Arnav Nigam
     messages: [
       {
         id: 1,
         type: "text",
-        sender: "Rahul",
+        sender: "Arnav Nigam",
         content: "Did you see the new trailer for that sci-fi movie?",
         timestamp: "1 week ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -804,41 +653,15 @@ export const friendChats: FriendChat[] = [
         timestamp: "1 week ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },
-      {
-        id: 3,
-        type: "clip",
-        sender: "Rahul",
-        content: "Here you go, looks amazing!",
-        timestamp: "6 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        clipData: {
-          title: "Sci-Fi Movie Trailer",
-          thumbnail: "/placeholder.svg?height=120&width=200",
-          duration: "1:45",
-          platform: "YouTube",
-        },
-      },
-      {
-        id: 4,
-        type: "voice",
-        sender: "You",
-        content: "Voice message",
-        timestamp: "5 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        voiceData: {
-          duration: "0:12",
-          waveform: [0.2, 0.6, 0.3, 0.8, 0.4, 0.7, 0.5, 0.9, 0.3, 0.6],
-        },
-      },
     ],
   },
   {
-    friendId: 4,
+    friendId: 4, // Divya Sharma
     messages: [
       {
         id: 1,
         type: "text",
-        sender: "Priya",
+        sender: "Divya Sharma",
         content: "Hey! Want to join our movie night this weekend?",
         timestamp: "4 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
@@ -848,94 +671,6 @@ export const friendChats: FriendChat[] = [
         type: "text",
         sender: "You",
         content: "What are you watching?",
-        timestamp: "4 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 3,
-        type: "text",
-        sender: "Priya",
-        content:
-          "We're thinking of a horror movie marathon - The Conjuring series!",
-        timestamp: "3 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 4,
-        type: "text",
-        sender: "You",
-        content: "Sounds great! I'll bring snacks 🍿",
-        timestamp: "3 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-    ],
-  },
-  {
-    friendId: 5,
-    messages: [
-      {
-        id: 1,
-        type: "text",
-        sender: "Karan",
-        content: "Have you started watching that new documentary series?",
-        timestamp: "1 week ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 2,
-        type: "text",
-        sender: "You",
-        content: "Not yet, is it good?",
-        timestamp: "1 week ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 3,
-        type: "text",
-        sender: "Karan",
-        content:
-          "It's amazing! Very eye-opening. Let me know when you start it.",
-        timestamp: "6 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-    ],
-  },
-  {
-    friendId: 6,
-    messages: [
-      {
-        id: 1,
-        type: "text",
-        sender: "Sanya",
-        content: "Did you finish Stranger Things yet?",
-        timestamp: "5 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 2,
-        type: "text",
-        sender: "You",
-        content: "Almost done with the latest season! It's so good!",
-        timestamp: "5 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: 3,
-        type: "image",
-        sender: "Sanya",
-        content: "Look what I got!",
-        timestamp: "4 days ago",
-        avatar: "/placeholder.svg?height=40&width=40",
-        imageData: {
-          url: "/placeholder.svg?height=300&width=400",
-          caption: "Stranger Things merchandise",
-        },
-      },
-      {
-        id: 4,
-        type: "text",
-        sender: "You",
-        content: "That's awesome! Where did you get it?",
         timestamp: "4 days ago",
         avatar: "/placeholder.svg?height=40&width=40",
       },

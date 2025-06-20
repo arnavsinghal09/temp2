@@ -1,35 +1,57 @@
-"use client"
-import { useState } from "react"
-import { Users, Eye, EyeOff, Copy, Check } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { DUMMY_CREDENTIALS, DUMMY_USERS, UserManager, type User } from "@/lib/user-management"
+"use client";
+import { useState } from "react";
+import { Users, Eye, EyeOff, Copy, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  DUMMY_CREDENTIALS,
+  DUMMY_USERS,
+  UserManager,
+  type User,
+} from "@/lib/user-management";
 
 interface UserAccountsPageProps {
-  onUserSelect: (user: User) => void
-  currentUser: User | null
+  onUserSelect: (user: User) => void;
+  currentUser: User | null;
 }
 
-export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPageProps) {
-  const [showPasswords, setShowPasswords] = useState(false)
-  const [copiedCredential, setCopiedCredential] = useState<string | null>(null)
+export function UserAccountsPage({
+  onUserSelect,
+  currentUser,
+}: UserAccountsPageProps) {
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [copiedCredential, setCopiedCredential] = useState<string | null>(null);
 
   const handleCopyCredentials = async (email: string, password: string) => {
-    const credentials = `Email: ${email}\nPassword: ${password}`
+    const credentials = `Email: ${email}\nPassword: ${password}`;
     try {
-      await navigator.clipboard.writeText(credentials)
-      setCopiedCredential(email)
-      setTimeout(() => setCopiedCredential(null), 2000)
+      await navigator.clipboard.writeText(credentials);
+      setCopiedCredential(email);
+      setTimeout(() => setCopiedCredential(null), 2000);
     } catch (error) {
-      console.error("Failed to copy credentials:", error)
+      console.error("Failed to copy credentials:", error);
     }
-  }
+  };
 
   const handleUserLogin = (credentials: (typeof DUMMY_CREDENTIALS)[0]) => {
-    const user = UserManager.authenticateUser(credentials.email, credentials.password)
+    const user = UserManager.authenticateUser(
+      credentials.email,
+      credentials.password
+    );
     if (user) {
-      onUserSelect(user)
+      onUserSelect(user);
     }
-  }
+  };
+
+  const getCampfireNames = (campfireIds: number[]) => {
+    const campfireNames: { [key: number]: string } = {
+      1: "Movie Night Squad",
+      2: "Binge Busters",
+      3: "Weekend Warriors",
+    };
+    return campfireIds
+      .map((id) => campfireNames[id] || `Campfire ${id}`)
+      .join(", ");
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -42,38 +64,49 @@ export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPage
           onClick={() => setShowPasswords(!showPasswords)}
           className="flex items-center space-x-2 bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
         >
-          {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {showPasswords ? (
+            <EyeOff className="w-4 h-4" />
+          ) : (
+            <Eye className="w-4 h-4" />
+          )}
           <span>{showPasswords ? "Hide" : "Show"} Passwords</span>
         </button>
       </div>
 
       <div className="bg-gray-950 rounded-lg p-6 border border-gray-800">
-        <h2 className="text-[#ff6404] font-semibold text-lg mb-4">Demo User Accounts</h2>
+        <h2 className="text-[#ff6404] font-semibold text-lg mb-4">
+          Demo User Accounts
+        </h2>
         <p className="text-gray-400 text-sm mb-6">
-          These are the available demo accounts. All passwords are "password123" for simplicity. Click on any user to
-          switch to their account.
+          These are the 4 available demo accounts. All passwords are
+          "password123" for simplicity. Click on any user to switch to their
+          account. Each user has access to different campfires.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {DUMMY_CREDENTIALS.map((credentials) => {
-            const user = DUMMY_USERS.find((u) => u.id === credentials.userId)
-            if (!user) return null
+            const user = DUMMY_USERS.find((u) => u.id === credentials.userId);
+            if (!user) return null;
 
-            const isCurrentUser = currentUser?.id === user.id
+            const isCurrentUser = currentUser?.id === user.id;
 
             return (
               <div
                 key={user.id}
                 className={cn(
                   "bg-gray-900 rounded-lg p-4 border transition-all duration-300 hover:scale-105 cursor-pointer",
-                  isCurrentUser ? "border-[#ff6404] bg-[#ff6404]/10" : "border-gray-800 hover:border-[#ff6404]/30",
+                  isCurrentUser
+                    ? "border-[#ff6404] bg-[#ff6404]/10"
+                    : "border-gray-800 hover:border-[#ff6404]/30"
                 )}
                 onClick={() => !isCurrentUser && handleUserLogin(credentials)}
               >
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="relative">
                     <div className="w-12 h-12 bg-gradient-to-br from-[#ff6404] to-orange-600 rounded-full flex items-center justify-center">
-                      <span className="text-black font-bold text-lg">{user.name.charAt(0)}</span>
+                      <span className="text-black font-bold text-lg">
+                        {user.name.charAt(0)}
+                      </span>
                     </div>
                     {user.isOnline && (
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900" />
@@ -85,7 +118,11 @@ export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPage
                   <div className="flex-1">
                     <h3 className="text-white font-semibold flex items-center space-x-2">
                       <span>{user.name}</span>
-                      {isCurrentUser && <span className="text-[#ff6404] text-xs">(Current)</span>}
+                      {isCurrentUser && (
+                        <span className="text-[#ff6404] text-xs">
+                          (Current)
+                        </span>
+                      )}
                     </h3>
                     <p className="text-gray-400 text-sm">{user.bio}</p>
                     <p className="text-gray-500 text-xs">{user.location}</p>
@@ -95,7 +132,9 @@ export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPage
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400 text-sm">Email:</span>
-                    <span className="text-white text-sm font-mono">{credentials.email}</span>
+                    <span className="text-white text-sm font-mono">
+                      {credentials.email}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400 text-sm">Password:</span>
@@ -105,8 +144,11 @@ export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPage
                       </span>
                       <button
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handleCopyCredentials(credentials.email, credentials.password)
+                          e.stopPropagation();
+                          handleCopyCredentials(
+                            credentials.email,
+                            credentials.password
+                          );
                         }}
                         className="p-1 text-gray-400 hover:text-[#ff6404] transition-colors"
                         title="Copy credentials"
@@ -121,14 +163,35 @@ export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPage
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400 text-sm">Status:</span>
-                    <span className={cn("text-sm", user.isOnline ? "text-green-400" : "text-gray-400")}>
+                    <span
+                      className={cn(
+                        "text-sm",
+                        user.isOnline ? "text-green-400" : "text-gray-400"
+                      )}
+                    >
                       {user.status}
                     </span>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-sm">Campfires:</span>
+                    <span className="text-[#ff6404] text-sm">
+                      {user.campfires.length} groups
+                    </span>
+                  </div>
+                  {user.campfires.length > 0 && (
+                    <div className="mt-2 p-2 bg-gray-800 rounded text-xs">
+                      <p className="text-gray-400 mb-1">Member of:</p>
+                      <p className="text-white">
+                        {getCampfireNames(user.campfires)}
+                      </p>
+                    </div>
+                  )}
                   {user.currentShow && (
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400 text-sm">Watching:</span>
-                      <span className="text-[#ff6404] text-sm">{user.currentShow}</span>
+                      <span className="text-[#ff6404] text-sm">
+                        {user.currentShow}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -141,28 +204,73 @@ export function UserAccountsPage({ onUserSelect, currentUser }: UserAccountsPage
                   </div>
                 )}
               </div>
-            )
+            );
           })}
         </div>
       </div>
 
       <div className="bg-gray-950 rounded-lg p-6 border border-gray-800">
-        <h2 className="text-[#ff6404] font-semibold text-lg mb-4">System Information</h2>
+        <h2 className="text-[#ff6404] font-semibold text-lg mb-4">
+          System Information
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
             <h3 className="text-white font-medium mb-2">Total Users</h3>
-            <p className="text-[#ff6404] text-2xl font-bold">{DUMMY_USERS.length}</p>
+            <p className="text-[#ff6404] text-2xl font-bold">
+              {DUMMY_USERS.length}
+            </p>
           </div>
           <div>
             <h3 className="text-white font-medium mb-2">Online Users</h3>
-            <p className="text-green-400 text-2xl font-bold">{DUMMY_USERS.filter((u) => u.isOnline).length}</p>
+            <p className="text-green-400 text-2xl font-bold">
+              {DUMMY_USERS.filter((u) => u.isOnline).length}
+            </p>
           </div>
           <div>
             <h3 className="text-white font-medium mb-2">Current User</h3>
-            <p className="text-[#ff6404] text-lg font-semibold">{currentUser?.name || "None"}</p>
+            <p className="text-[#ff6404] text-lg font-semibold">
+              {currentUser?.name || "None"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-950 rounded-lg p-6 border border-gray-800">
+        <h2 className="text-[#ff6404] font-semibold text-lg mb-4">
+          Campfire Memberships
+        </h2>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Movie Night Squad</h3>
+              <p className="text-gray-400 text-sm">
+                Ashu Sharma, Aryav Gupta, Divya Sharma
+              </p>
+            </div>
+            <span className="text-[#ff6404] text-sm font-medium">
+              3 members
+            </span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Binge Busters</h3>
+              <p className="text-gray-400 text-sm">Ashu Sharma, Arnav Nigam</p>
+            </div>
+            <span className="text-[#ff6404] text-sm font-medium">
+              2 members
+            </span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Weekend Warriors</h3>
+              <p className="text-gray-400 text-sm">Aryav Gupta, Arnav Nigam</p>
+            </div>
+            <span className="text-[#ff6404] text-sm font-medium">
+              2 members
+            </span>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
