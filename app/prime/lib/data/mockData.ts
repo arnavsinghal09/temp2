@@ -288,6 +288,8 @@ export const getContentById = (id: string): ContentItem | FeaturedContent => {
       title: "THE TRAITORS",
       thumbnail:
         "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
+      image:
+        "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
       year: 2024,
       duration: "45m",
       genre: "Reality TV",
@@ -310,11 +312,14 @@ export const getContentById = (id: string): ContentItem | FeaturedContent => {
       "This is a sample description for the content. In a real application, this would be fetched from a database or API with detailed plot information and cast details.",
     thumbnail:
       "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
+    image:
+      "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
     year: 2024,
     duration: "1h 30m",
     genre: "Drama, Thriller",
     rating: "TV-MA",
   };
+  
 };
 
 

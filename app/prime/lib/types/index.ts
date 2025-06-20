@@ -12,16 +12,18 @@ export interface FeaturedContent {
 }
 
 export interface ContentItem {
-  id: string
-  title: string
-  thumbnail: string
-  year?: number
-  duration?: string
-  badge?: string
-  isPrime?: boolean
-  rating?: string
-  genre?: string
+  id: string;
+  title: string;
+  thumbnail: string;
+  image?: string;
+  year?: number;
+  duration?: string;
+  badge?: string;
+  isPrime?: boolean;
+  rating?: string;
+  genre?: string;
 }
+
 
 export interface ContentRowProps {
   title: string

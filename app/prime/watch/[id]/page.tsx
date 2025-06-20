@@ -35,19 +35,26 @@ export default function WatchPage({ params }: WatchPageProps) {
   const [startTime, setStartTime] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [videoError, setVideoError] = useState(false);
+
 
   const content = getContentById(id);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const timeParam = urlParams.get("t");
+    console.log("Prime Video Player - URL params:", {
+      timeParam,
+      contentId: id,
+    });
     if (timeParam) {
       const time = parseFloat(timeParam);
       if (!isNaN(time) && time >= 0) {
+        console.log("Prime Video Player - Setting start time:", time);
         setStartTime(time);
       }
     }
-  }, []);
+  }, [id]);  
 
   useEffect(() => {
     const video = videoRef.current;
@@ -56,27 +63,44 @@ export default function WatchPage({ params }: WatchPageProps) {
     const updateTime = () => setCurrentTime(video.currentTime);
     const updateDuration = () => {
       setDuration(video.duration);
-      // Seek to start time when duration is loaded
-      if (startTime !== null && video.duration > 0) {
-        video.currentTime = Math.min(startTime, video.duration);
-        setCurrentTime(startTime);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+      // Only seek to start time once when metadata is loaded
+      if (startTime !== null && video.duration > 0 && video.currentTime === 0) {
+        const targetTime = Math.min(startTime, video.duration);
+        video.currentTime = targetTime;
+        setCurrentTime(targetTime);
+        // Clear startTime to prevent further seeking
+        setStartTime(null);
       }
     };
 
+    const handleError = () => {
+      console.error("Video loading error");
+      setVideoError(true);
+    };
+
+    const handleCanPlay = () => {
+      setVideoError(false);
+    };
+
+  
+    video.addEventListener("error", handleError);
+    video.addEventListener("canplay", handleCanPlay);
+
     video.addEventListener("timeupdate", updateTime);
-    video.addEventListener("loadedmetadata", updateDuration);
-    video.addEventListener("canplay", () => {
-      if (startTime !== null) {
-        video.currentTime = Math.min(startTime, video.duration || 0);
-        setCurrentTime(startTime);
-      }
-    });
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
 
     return () => {
       video.removeEventListener("timeupdate", updateTime);
-      video.removeEventListener("loadedmetadata", updateDuration);
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("error", handleError);
+      video.removeEventListener("canplay", handleCanPlay);    
     };
   }, [startTime]);
+  
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -131,11 +155,17 @@ export default function WatchPage({ params }: WatchPageProps) {
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
-          poster={`/placeholder.svg?height=1080&width=1920&text=${encodeURIComponent(
-            content.title + " Video Player"
-          )}`}
+          poster={
+            "thumbnail" in content && content.thumbnail
+              ? content.thumbnail
+              : ("image" in content && content.image
+                ? content.image
+                : "/placeholder.svg?height=1080&width=1920")
+          }
           onClick={togglePlay}
           autoPlay
+          muted
+          playsInline
         >
           <source
             src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
