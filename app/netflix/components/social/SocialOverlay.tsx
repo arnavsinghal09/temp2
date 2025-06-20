@@ -38,6 +38,7 @@ interface VoiceRecording {
   duration: number;
   blob: Blob | null;
   url: string | null;
+  base64: string | null; // Add base64 field
   mediaRecorder: MediaRecorder | null;
 }
 
@@ -66,6 +67,7 @@ export default function SocialOverlay({
     duration: 0,
     blob: null,
     url: null,
+    base64: null,
     mediaRecorder: null,
   });
 
@@ -77,21 +79,60 @@ export default function SocialOverlay({
   const userCampfires = user.campfires || [];
 
   const handleCreateClip = () => {
+    console.log("🎬 Creating clip for content:", content.title);
     setStep("reaction");
   };
 
   const handleAddReaction = () => {
+    console.log("📝 Adding reaction, type:", reactionType);
+    if (reactionType === "voice" && voiceRecording.blob) {
+      console.log("🎤 Voice reaction data:", {
+        blobSize: voiceRecording.blob.size,
+        blobType: voiceRecording.blob.type,
+        duration: voiceRecording.duration,
+        hasBase64: !!voiceRecording.base64,
+      });
+    }
     setStep("share");
   };
 
   const handleSkipReaction = () => {
+    console.log("⏭️ Skipping reaction");
     setReactionContent("");
-    setVoiceRecording((prev) => ({ ...prev, blob: null, url: null }));
+    deleteVoiceRecording();
     setStep("share");
+  };
+
+  // Enhanced blob to base64 conversion
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      console.log("🔄 Converting blob to base64:", {
+        size: blob.size,
+        type: blob.type,
+      });
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          console.log("✅ Blob converted to base64 successfully");
+          resolve(reader.result);
+        } else {
+          console.error("❌ FileReader result is not a string");
+          reject(new Error("Failed to convert blob to base64"));
+        }
+      };
+      reader.onerror = (error) => {
+        console.error("❌ FileReader error:", error);
+        reject(error);
+      };
+      reader.readAsDataURL(blob);
+    });
   };
 
   // Voice recording functions
   const startVoiceRecording = async () => {
+    console.log("🎤 Starting voice recording...");
+
     try {
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -102,37 +143,63 @@ export default function SocialOverlay({
         },
       });
 
-      // Check for MediaRecorder support
-      if (!MediaRecorder.isTypeSupported("audio/webm")) {
-        console.warn("audio/webm not supported, falling back to default");
-      }
+      console.log("✅ Microphone access granted");
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported("audio/webm")
-          ? "audio/webm"
-          : undefined,
-      });
+      // Check for MediaRecorder support
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "audio/mp4";
+
+      console.log("🎵 Using MIME type:", mimeType);
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       const chunks: BlobPart[] = [];
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
+          console.log("📦 Audio chunk received:", e.data.size, "bytes");
           chunks.push(e.data);
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, {
-          type: mediaRecorder.mimeType || "audio/webm",
-        });
+      mediaRecorder.onstop = async () => {
+        console.log("🛑 Recording stopped, processing audio...");
+
+        const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
 
-        setVoiceRecording((prev) => ({
-          ...prev,
-          isRecording: false,
-          blob,
-          url,
-          mediaRecorder: null,
-        }));
+        console.log("🎵 Audio blob created:", {
+          size: blob.size,
+          type: blob.type,
+        });
+
+        try {
+          // Convert to base64
+          const base64 = await blobToBase64(blob);
+          console.log("✅ Base64 conversion successful:", {
+            base64Length: base64.length,
+            base64Preview: base64.substring(0, 50) + "...",
+          });
+
+          setVoiceRecording((prev) => ({
+            ...prev,
+            isRecording: false,
+            blob,
+            url,
+            base64,
+            mediaRecorder: null,
+          }));
+        } catch (error) {
+          console.error("❌ Failed to convert blob to base64:", error);
+          setVoiceRecording((prev) => ({
+            ...prev,
+            isRecording: false,
+            blob,
+            url,
+            base64: null,
+            mediaRecorder: null,
+          }));
+        }
 
         // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => {
@@ -142,7 +209,7 @@ export default function SocialOverlay({
       };
 
       mediaRecorder.onerror = (event) => {
-        console.error("MediaRecorder error:", event);
+        console.error("❌ MediaRecorder error:", event);
         alert("Recording error occurred. Please try again.");
 
         // Clean up on error
@@ -163,9 +230,10 @@ export default function SocialOverlay({
         mediaRecorder,
         blob: null,
         url: null,
+        base64: null,
       }));
 
-      console.log("🎤 Voice recording started");
+      console.log("🎤 Voice recording started successfully");
 
       // Start duration counter
       const startTime = Date.now();
@@ -179,6 +247,7 @@ export default function SocialOverlay({
 
           // Auto-stop after 60 seconds
           if (elapsed >= 60) {
+            console.log("⏰ Auto-stopping recording after 60 seconds");
             stopVoiceRecording();
             clearInterval(interval);
           }
@@ -186,8 +255,8 @@ export default function SocialOverlay({
           clearInterval(interval);
         }
       }, 1000);
-    } catch (error:any) {
-      console.error("Error starting voice recording:", error);
+    } catch (error: any) {
+      console.error("❌ Error starting voice recording:", error);
 
       if (error.name === "NotAllowedError") {
         alert(
@@ -212,47 +281,70 @@ export default function SocialOverlay({
   };
 
   const stopVoiceRecording = () => {
+    console.log("🛑 Stopping voice recording...");
+
     if (
       voiceRecording.mediaRecorder &&
       voiceRecording.mediaRecorder.state === "recording"
     ) {
-      console.log("🎤 Stopping voice recording");
+      console.log("🛑 MediaRecorder stop called");
       voiceRecording.mediaRecorder.stop();
+    } else {
+      console.log("⚠️ MediaRecorder not in recording state");
     }
   };
 
   const playVoiceRecording = () => {
+    console.log("▶️ Playing voice recording...");
+
     if (voiceRecording.url && !voiceRecording.isPlaying) {
+      console.log("🎵 Creating audio player with URL:", voiceRecording.url);
+
       try {
         const audio = new Audio(voiceRecording.url);
 
         setVoiceRecording((prev) => ({ ...prev, isPlaying: true }));
 
+        audio.oncanplay = () => {
+          console.log("✅ Audio can play");
+        };
+
+        audio.onloadstart = () => {
+          console.log("🔄 Audio loading started");
+        };
+
         audio.onended = () => {
+          console.log("⏹️ Audio playback ended");
           setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
         };
 
         audio.onerror = (error) => {
-          console.error("Error playing voice recording:", error);
+          console.error("❌ Audio playback error:", error);
           setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
           alert("Error playing voice recording. Please try recording again.");
         };
 
         audio.play().catch((error) => {
-          console.error("Error playing audio:", error);
+          console.error("❌ Error starting audio playback:", error);
           setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
         });
       } catch (error) {
-        console.error("Error creating audio player:", error);
+        console.error("❌ Error creating audio player:", error);
         setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
       }
+    } else {
+      console.log("⚠️ Cannot play: URL missing or already playing");
     }
   };
 
   const deleteVoiceRecording = () => {
+    console.log("🗑️ Deleting voice recording");
+
     if (voiceRecording.url) {
       URL.revokeObjectURL(voiceRecording.url);
+      console.log("🗑️ Object URL revoked");
     }
+
     setVoiceRecording({
       isRecording: false,
       isPlaying: false,
@@ -260,14 +352,17 @@ export default function SocialOverlay({
       duration: 0,
       blob: null,
       url: null,
+      base64: null,
       mediaRecorder: null,
     });
-    console.log("🗑️ Voice recording deleted");
+
+    console.log("✅ Voice recording deleted successfully");
   };
 
   const handleShare = async () => {
     if (getSelectedCount() === 0) return;
 
+    console.log("🚀 Starting clip share process...");
     setIsCreating(true);
     setIsSharing(true);
 
@@ -278,16 +373,22 @@ export default function SocialOverlay({
       // Prepare reaction data with proper blob handling
       let reactionData = undefined;
       if (reactionType === "text" && reactionContent.trim()) {
+        console.log("📝 Preparing text reaction");
         reactionData = {
           type: "text" as const,
           content: reactionContent.trim(),
           timestamp: Date.now(),
         };
-      } else if (reactionType === "voice" && voiceRecording.blob) {
-        console.log("🎤 Processing voice reaction:", {
+      } else if (
+        reactionType === "voice" &&
+        voiceRecording.blob &&
+        voiceRecording.base64
+      ) {
+        console.log("🎤 Preparing voice reaction:", {
           blobSize: voiceRecording.blob.size,
           blobType: voiceRecording.blob.type,
           duration: voiceRecording.duration,
+          base64Length: voiceRecording.base64.length,
         });
 
         reactionData = {
@@ -296,9 +397,9 @@ export default function SocialOverlay({
           timestamp: Date.now(),
           voiceBlob: voiceRecording.blob,
           voiceDuration: voiceRecording.duration,
+          voiceBase64: voiceRecording.base64,
         };
       }
-      
 
       const clipData = {
         contentId: content.id,
@@ -317,18 +418,19 @@ export default function SocialOverlay({
         reaction: reactionData,
       };
 
+      console.log("📦 Final clip data prepared:", {
+        contentTitle: clipData.contentTitle,
+        shareTarget: clipData.shareTarget,
+        recipientCount: clipData.sharedWith.length,
+        hasReaction: !!clipData.reaction,
+        reactionType: clipData.reaction?.type,
+      });
+
       const clipId = await createClip(clipData);
 
       if (clipId) {
+        console.log("✅ Clip shared successfully with ID:", clipId);
         setStep("success");
-
-        console.log("Clip created successfully:", {
-          clipId,
-          contentTitle: content.title,
-          shareTarget,
-          sharedWith: sharedWith.length,
-          reactionType: reactionData?.type || "none",
-        });
 
         setTimeout(() => {
           onClose();
@@ -339,30 +441,13 @@ export default function SocialOverlay({
         throw new Error("Failed to create clip - no ID returned");
       }
     } catch (error) {
-      console.error("Failed to create clip:", error);
+      console.error("❌ Failed to create clip:", error);
       setIsCreating(false);
       setIsSharing(false);
       setStep("clip");
       alert("Failed to share clip. Please try again.");
     }
   };
-
-  // Helper function to convert blob to base64
-  const blobToBase64 = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-        } else {
-          reject(new Error("Failed to convert blob to base64"));
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-  
 
   const formatTime = (seconds: number) => {
     if (isNaN(seconds) || seconds < 0) return "0:00";

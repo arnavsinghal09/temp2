@@ -155,7 +155,7 @@ export interface ChatMessage {
     url: string;
     caption?: string;
   };
-  // Enhanced reaction data for Netflix clips
+  // Enhanced reaction data for Netflix clips and voice messages
   reactionData?: {
     type: "text" | "voice";
     content: string;
@@ -166,7 +166,6 @@ export interface ChatMessage {
     voiceBase64?: string; // Base64 encoded audio for persistence
   };
 }
-
 
 export interface CampfireChat {
   campfireId: number;

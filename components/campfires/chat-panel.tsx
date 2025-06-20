@@ -262,9 +262,12 @@ function NetflixClipMessage({
   };
 
   const handlePlayVoiceReaction = async () => {
-    if (isPlayingReaction) return;
+    if (isPlayingReaction) {
+      console.log("⚠️ Voice reaction already playing, ignoring request");
+      return;
+    }
 
-    console.log("🎵 Attempting to play voice reaction:", {
+    console.log("🎵 Starting voice reaction playback:", {
       hasReactionData: !!message.reactionData,
       reactionType: message.reactionData?.type,
       hasVoiceBlob: !!message.reactionData?.voiceBlob,
@@ -277,13 +280,25 @@ function NetflixClipMessage({
 
       // If no blob but have base64, reconstruct the blob
       if (!audioBlob && message.reactionData?.voiceBase64) {
-        console.log("🔄 Reconstructing blob from base64...");
+        console.log("🔄 No direct blob found, reconstructing from base64...");
+
         try {
-          audioBlob = base64ToBlob(message.reactionData.voiceBase64);
-          console.log("✅ Blob reconstructed successfully:", audioBlob);
+          const reconstructed = await reconstructBlobFromBase64(
+            message.reactionData.voiceBase64
+          );
+          audioBlob = reconstructed === null ? undefined : reconstructed;
+
+          if (audioBlob) {
+            console.log("✅ Blob reconstructed successfully:", {
+              size: audioBlob.size,
+              type: audioBlob.type,
+            });
+          } else {
+            console.error("❌ Failed to reconstruct blob from base64");
+          }
         } catch (conversionError) {
           console.error(
-            "❌ Failed to convert base64 to blob:",
+            "❌ Error during blob reconstruction:",
             conversionError
           );
         }
@@ -299,56 +314,175 @@ function NetflixClipMessage({
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
 
+        // Enhanced audio event logging
         audio.onloadstart = () => {
-          console.log("🎵 Audio loading started");
+          console.log("🔄 Audio loading started");
         };
 
         audio.oncanplay = () => {
-          console.log("✅ Audio can play");
+          console.log("✅ Audio can play, duration:", audio.duration);
+        };
+
+        audio.onloadeddata = () => {
+          console.log("📊 Audio data loaded");
+        };
+
+        audio.ontimeupdate = () => {
+          // Optional: log progress (commented out to avoid spam)
+          // console.log("⏱️ Audio progress:", audio.currentTime, "/", audio.duration);
         };
 
         audio.onended = () => {
-          console.log(" Audio playback ended");
+          console.log("⏹️ Audio playback ended naturally");
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
         };
 
         audio.onerror = (error) => {
-          console.error("Audio playback error:", error);
+          console.error("❌ Audio playback error:", error);
+          console.error("❌ Audio error details:", {
+            error: audio.error,
+            networkState: audio.networkState,
+            readyState: audio.readyState,
+          });
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+          alert("Failed to play voice reaction. The audio may be corrupted.");
+        };
+
+        audio.onabort = () => {
+          console.log("⏹️ Audio playback aborted");
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
         };
 
+        audio.onstalled = () => {
+          console.log("⏸️ Audio playback stalled");
+        };
+
+        audio.onsuspend = () => {
+          console.log("⏸️ Audio loading suspended");
+        };
+
+        // Validate blob size before attempting playback
         if (audioBlob.size < 100) {
-          console.error("❌ Blob too small, likely corrupted:", audioBlob);
-          alert("Audio file seems corrupted or too small to play.");
+          console.error("❌ Audio blob too small:", audioBlob.size, "bytes");
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+          alert("Voice reaction file is too small or corrupted.");
           return;
         }
 
-        await audio.play().catch((err) => {
-          console.error("❌ Audio playback failed:", err);
+        try {
+          await audio.play();
+          console.log("✅ Audio playback started successfully");
+        } catch (playError:any) {
+          console.error("❌ Error starting audio playback:", playError);
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
-        });
 
-        console.log("Audio playback started");
+          // Provide more specific error messages
+          if (playError.name === "NotAllowedError") {
+            alert(
+              "Audio playback blocked. Please interact with the page first."
+            );
+          } else if (playError.name === "NotSupportedError") {
+            alert("Audio format not supported by your browser.");
+          } else {
+            alert("Failed to play voice reaction. Please try again.");
+          }
+        }
       } else {
-        console.error("No valid voice data found:", {
+        console.error("❌ No valid audio data found:", {
           hasBlob: !!audioBlob,
           blobSize: audioBlob?.size,
           blobType: audioBlob?.type,
           isValidBlob: audioBlob instanceof Blob,
+          hasBase64: !!message.reactionData?.voiceBase64,
         });
         alert(
-          "Voice reaction could not be played. The audio data may be corrupted."
+          "Voice reaction could not be played. The audio data may be missing or corrupted."
         );
       }
     } catch (error) {
       setIsPlayingReaction(false);
-      console.error("❌ Error playing voice reaction:", error);
-      alert("Failed to play voice reaction. Please try again.");
+      console.error(
+        "❌ Unexpected error during voice reaction playback:",
+        error
+      );
+      alert("An unexpected error occurred while playing the voice reaction.");
     }
   };
+
+  // Add this helper function to the chat panel component
+  const reconstructBlobFromBase64 = async (
+    base64Data: string
+  ): Promise<Blob | null> => {
+    try {
+      console.log("🔄 Reconstructing blob from base64:", {
+        dataLength: base64Data.length,
+        hasDataPrefix: base64Data.startsWith("data:"),
+      });
+
+      if (!base64Data || typeof base64Data !== "string") {
+        console.error("❌ Invalid base64 data");
+        return null;
+      }
+
+      // Handle data URL format
+      let base64String = base64Data;
+      let mimeType = "audio/webm";
+
+      if (base64Data.startsWith("data:")) {
+        const parts = base64Data.split(",");
+        if (parts.length === 2) {
+          const header = parts[0];
+          base64String = parts[1];
+
+          // Extract MIME type
+          const mimeMatch = header.match(/data:([^;]+)/);
+          if (mimeMatch) {
+            mimeType = mimeMatch[1];
+          }
+        }
+      }
+
+      console.log("🔍 Base64 reconstruction details:", {
+        mimeType,
+        base64Length: base64String.length,
+      });
+
+      const byteCharacters = atob(base64String);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const validTypes = [
+        "audio/webm",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/ogg",
+        "audio/mp4",
+      ];
+      const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
+      const blob = new Blob([byteArray], { type: finalType });
+
+      console.log("✅ Blob reconstructed successfully:", {
+        size: blob.size,
+        type: blob.type,
+      });
+
+      return blob;
+    } catch (error) {
+      console.error("❌ Error reconstructing blob from base64:", error);
+      return null;
+    }
+  };
+  
+  
 
   // Enhanced base64 to blob conversion with better error handling
   const base64ToBlob = (base64Data: string): Blob => {
