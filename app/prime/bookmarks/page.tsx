@@ -5,18 +5,11 @@ import { useRouter } from "next/navigation"
 import { usePrimeAuthStore } from "../lib/stores/auth"
 import { PrimeUserDataService } from "../lib/services/user-data"
 import { useStorageListener } from "../hooks/use-storage-listener"
-
 import { Suspense } from "react"
-import type { Metadata } from "next"
 import ContentRow from "../components/home/ContentRow"
 import LoadingSkeleton from "../components/ui/LoadingSkeleton"
 import { Bookmark, Heart, Clock, Trash2 } from "lucide-react"
 import type { ContentItem } from "../lib/types/index"
-
-export const metadata: Metadata = {
-  title: "My Bookmarks - Your Saved Content",
-  description: "View and manage your bookmarked movies and TV shows",
-}
 
 // Mock bookmarked content
 const bookmarkedMovies: ContentItem[] = [

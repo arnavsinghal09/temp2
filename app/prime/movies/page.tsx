@@ -6,18 +6,12 @@ import { usePrimeAuthStore } from "../lib/stores/auth"
 import { PrimeUserDataService } from "../lib/services/user-data"
 
 import { Suspense } from "react"
-import type { Metadata } from "next"
 import ContentRow from "../components/home/ContentRow"
 import FeaturedBanner from "../components/home/FeaturedBanner"
 import LoadingSkeleton from "../components/ui/LoadingSkeleton"
 import { recentlyAdded, popularMovies } from "../lib/data/mockData"
 import type { FeaturedContent } from "../lib/types/index"
 import type { ContentItem } from "../lib/types/index"
-
-export const metadata: Metadata = {
-  title: "Movies - Stream Latest Films",
-  description: "Discover the latest movies, blockbusters, and award-winning films on PrimeClone",
-}
 
 // Movie-specific content
 const featuredMovie: FeaturedContent = {

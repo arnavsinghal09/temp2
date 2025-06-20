@@ -1,3 +1,4 @@
+"use client"
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import ContentRow from "../components/home/ContentRow"
@@ -33,8 +34,6 @@ const featuredMovie: FeaturedContent = {
 }
 
 const actionMovies: ContentItem[] = [
-
-
   {
     id: "action-5",
     title: "Fallout",
