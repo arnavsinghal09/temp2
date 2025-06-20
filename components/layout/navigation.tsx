@@ -10,6 +10,7 @@ import { GridOverlay } from "./grid-overlay";
 import { AccountSwitcher } from "@/components/auth/account-switcher";
 import type { User } from "@/lib/user-management";
 import { useRouter } from "next/navigation";
+import { UserManager } from "@/lib/user-management";
 
 interface NavigationProps {
   activeTab: string;
@@ -176,23 +177,63 @@ export function NavigationBar({
                   selectedService === service.id ? null : service.id
                 );
 
-                // Special handling for Netflix - pass user data
+                // Special handling for Netflix - pass complete user data
                 if (service.redirectUrl === "/netflix") {
                   if (currentUser) {
+                    // Get user's friends (all other users)
+                    const allUsers = UserManager.getAllUsers();
+                    const userFriends = allUsers
+                      .filter((u) => u.id !== currentUser.id)
+                      .map((u) => ({
+                        id: u.id,
+                        name: u.name,
+                        avatar: u.avatar,
+                        isOnline: u.isOnline,
+                        status: u.status,
+                      }));
+
+                    // Get user's campfires
+                    const userCampfires =
+                      currentUser.campfires?.map((campfireId) => {
+                        const campfireNames: { [key: number]: string } = {
+                          1: "Movie Night Squad",
+                          2: "Binge Busters",
+                          3: "Weekend Warriors",
+                        };
+                        const campfireMembers: { [key: number]: string[] } = {
+                          1: ["Ashu Sharma", "Aryav Gupta", "Divya Sharma"],
+                          2: ["Ashu Sharma", "Arnav Nigam"],
+                          3: ["Aryav Gupta", "Arnav Nigam"],
+                        };
+                        return {
+                          id: campfireId,
+                          name:
+                            campfireNames[campfireId] ||
+                            `Campfire ${campfireId}`,
+                          avatar: "/placeholder.svg?height=60&width=60",
+                          members: campfireMembers[campfireId] || [],
+                          memberCount: campfireMembers[campfireId]?.length || 0,
+                        };
+                      }) || [];
+
                     const netflixUserData = {
                       id: currentUser.id,
                       name: currentUser.name,
                       avatar: currentUser.avatar,
                       email: currentUser.email,
+                      friends: userFriends,
+                      campfires: userCampfires,
                     };
+
                     localStorage.setItem(
                       "netflix-user",
                       JSON.stringify(netflixUserData)
                     );
-                    console.log(
-                      "Passing user data to Netflix:",
-                      netflixUserData
-                    );
+                    console.log("Passing complete user data to Netflix:", {
+                      user: netflixUserData.name,
+                      friends: netflixUserData.friends.length,
+                      campfires: netflixUserData.campfires.length,
+                    });
                   }
                 }
 

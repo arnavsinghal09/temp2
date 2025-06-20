@@ -20,6 +20,7 @@ export interface SharedClip {
     avatar: string;
   };
   sharedWith: number[];
+  shareTarget: "friends" | "campfires"; // New field to indicate what type of sharing
   reaction?: ClipReaction;
   createdAt: Date;
   status: "pending" | "processing" | "ready" | "failed";
@@ -49,9 +50,12 @@ export const useClipsStore = create<ClipsState>()((set) => ({
       status: "ready",
     };
 
-    // In the Netflix section, clips are just created and returned to FireStories
-    // FireStories will handle the actual storage and sharing
-    console.log("Clip created for FireStories:", newClip);
+    // In the Netflix section, clips are created and logged for FireStories integration
+    console.log("Clip created for FireStories integration:", {
+      ...newClip,
+      shareTargetType: newClip.shareTarget,
+      recipientCount: newClip.sharedWith.length,
+    });
 
     return newClip.id;
   },
