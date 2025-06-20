@@ -1,3 +1,12 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
+import { useRouter } from "next/navigation"
+import { usePrimeAuthStore } from "../lib/stores/auth"
+import { useStorageListener } from "../hooks/use-storage-listener"
+import { PrimeUserDataService } from "../lib/services/user-data"
+
 import { Check, Star, Zap, Crown, Gift } from "lucide-react"
 
 const subscriptionPlans = [
@@ -100,6 +109,53 @@ const availableChannels = [
 ]
 
 export default function SubscriptionsPage() {
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { user, setUser } = usePrimeAuthStore()
+
+  useEffect(() => {
+    if (!user) {
+      const completeUserData = PrimeUserDataService.initializeFromFireStories()
+      if (completeUserData) {// Add storage listener for prime-user changes
+        const { timestamp } = useStorageListener("prime-user")
+
+        useEffect(() => {
+          console.log('Prime Account: Storage change detected, reinitializing user data')
+
+          // Clear current user and loading state
+          setLoading(true)
+          if (user) {
+            setUser(null)
+          }
+
+          // Initialize user data from FireStories
+          const completeUserData = PrimeUserDataService.initializeFromFireStories()
+
+          if (completeUserData) {
+            setUser(completeUserData)
+            console.log('Prime Account: User initialized/updated:', {
+              user: completeUserData.name,
+              friends: completeUserData.friends?.length || 0,
+              campfires: completeUserData.campfires?.length || 0
+            })
+          } else {
+            // If no user data available, redirect to main app
+            console.log('Prime Account: No user data found, redirecting to FireStories')
+            router.push("/")
+            return
+          }
+
+          setLoading(false)
+        }, [timestamp, setUser, router]) // React to storage changes via timestamp
+
+        setUser(completeUserData)
+      } else {
+        router.push("/")
+        return
+      }
+    }
+  }, [user, setUser, router])
+
   return (
     <main className="min-h-screen bg-[#0F171E] pt-20 page-transition">
       {/* Hero Section */}
@@ -122,9 +178,8 @@ export default function SubscriptionsPage() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-white/5 rounded-2xl p-8 backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:bg-white/10 ${
-                  plan.popular ? "border-[#00A8E1] shadow-lg shadow-[#00A8E1]/20" : "border-white/10"
-                }`}
+                className={`relative bg-white/5 rounded-2xl p-8 backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:bg-white/10 ${plan.popular ? "border-[#00A8E1] shadow-lg shadow-[#00A8E1]/20" : "border-white/10"
+                  }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">

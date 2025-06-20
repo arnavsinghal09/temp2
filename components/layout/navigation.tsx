@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-
+import { dispatchStorageChange } from "@/app/prime/hooks/use-storage-listener"
 import { Settings, Search, Home, Grid3X3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { streamingServices } from "@/lib/data";
@@ -236,6 +236,77 @@ export function NavigationBar({
                     });
                   }
                 }
+                // Special handling for Prime Video 
+                if (service.redirectUrl === "/prime") {
+                  if (currentUser) {
+                    // Get user's friends (all other users)
+                    const allUsers = UserManager.getAllUsers();
+                    const userFriends = allUsers
+                      .filter((u) => u.id !== currentUser.id)
+                      .map((u) => ({
+                        id: u.id,
+                        name: u.name,
+                        avatar: u.avatar,
+                        isOnline: u.isOnline,
+                        status: u.status,
+                      }));
+
+                    // Get user's campfires
+                    const userCampfires =
+                      currentUser.campfires?.map((campfireId) => {
+                        const campfireNames: { [key: number]: string } = {
+                          1: "Movie Night Squad",
+                          2: "Binge Busters",
+                          3: "Weekend Warriors",
+                        };
+                        const campfireMembers: { [key: number]: string[] } = {
+                          1: ["Ashu Sharma", "Aryav Gupta", "Divya Sharma"],
+                          2: ["Ashu Sharma", "Arnav Nigam"],
+                          3: ["Aryav Gupta", "Arnav Nigam"],
+                        };
+                        return {
+                          id: campfireId,
+                          name:
+                            campfireNames[campfireId] ||
+                            `Campfire ${campfireId}`,
+                          avatar: "/placeholder.svg?height=60&width=60",
+                          members: campfireMembers[campfireId] || [],
+                          memberCount: campfireMembers[campfireId]?.length || 0,
+                        };
+                      }) || [];
+
+                    const primeUserData = {
+                      id: currentUser.id,
+                      name: currentUser.name,
+                      avatar: currentUser.avatar,
+                      email: currentUser.email,
+                      bio: currentUser.bio,
+                      location: currentUser.location,
+                      isOnline: currentUser.isOnline,
+                      status: currentUser.status,
+                      friends: userFriends,
+                      campfires: userCampfires,
+                    };
+
+                    const primeUserDataString = JSON.stringify(primeUserData);
+                    localStorage.setItem("prime-user", primeUserDataString);
+
+                    // Dispatch custom event to notify Prime Video of the change
+                    dispatchStorageChange("prime-user", primeUserDataString);
+
+                    console.log("Passing complete user data to Prime Video:", {
+                      user: primeUserData.name,
+                      friends: primeUserData.friends.length,
+                      campfires: primeUserData.campfires.length,
+                    });
+                  } else {
+                    // Clear Prime Video user data if no current user
+                    localStorage.removeItem("prime-user");
+                    dispatchStorageChange("prime-user", null);
+                  }
+                }
+
+
 
                 router.push(service.redirectUrl || "/");
               }}

@@ -38,7 +38,7 @@ interface VoiceRecording {
   duration: number;
   blob: Blob | null;
   url: string | null;
-  base64: string | null; // Add base64 field
+  base64: string | null;
   mediaRecorder: MediaRecorder | null;
 }
 
@@ -79,25 +79,14 @@ export default function SocialOverlay({
   const userCampfires = user.campfires || [];
 
   const handleCreateClip = () => {
-    console.log("🎬 Creating clip for content:", content.title);
     setStep("reaction");
   };
 
   const handleAddReaction = () => {
-    console.log("📝 Adding reaction, type:", reactionType);
-    if (reactionType === "voice" && voiceRecording.blob) {
-      console.log("🎤 Voice reaction data:", {
-        blobSize: voiceRecording.blob.size,
-        blobType: voiceRecording.blob.type,
-        duration: voiceRecording.duration,
-        hasBase64: !!voiceRecording.base64,
-      });
-    }
     setStep("share");
   };
 
   const handleSkipReaction = () => {
-    console.log("⏭️ Skipping reaction");
     setReactionContent("");
     deleteVoiceRecording();
     setStep("share");
@@ -106,23 +95,15 @@ export default function SocialOverlay({
   // Enhanced blob to base64 conversion
   const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
-      console.log("🔄 Converting blob to base64:", {
-        size: blob.size,
-        type: blob.type,
-      });
-
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          console.log("✅ Blob converted to base64 successfully");
           resolve(reader.result);
         } else {
-          console.error("❌ FileReader result is not a string");
           reject(new Error("Failed to convert blob to base64"));
         }
       };
       reader.onerror = (error) => {
-        console.error("❌ FileReader error:", error);
         reject(error);
       };
       reader.readAsDataURL(blob);
@@ -131,8 +112,6 @@ export default function SocialOverlay({
 
   // Voice recording functions
   const startVoiceRecording = async () => {
-    console.log("🎤 Starting voice recording...");
-
     try {
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -143,43 +122,27 @@ export default function SocialOverlay({
         },
       });
 
-      console.log("✅ Microphone access granted");
-
       // Check for MediaRecorder support
       const mimeType = MediaRecorder.isTypeSupported("audio/webm")
         ? "audio/webm"
         : "audio/mp4";
-
-      console.log("🎵 Using MIME type:", mimeType);
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       const chunks: BlobPart[] = [];
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
-          console.log("📦 Audio chunk received:", e.data.size, "bytes");
           chunks.push(e.data);
         }
       };
 
       mediaRecorder.onstop = async () => {
-        console.log("🛑 Recording stopped, processing audio...");
-
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
-
-        console.log("🎵 Audio blob created:", {
-          size: blob.size,
-          type: blob.type,
-        });
 
         try {
           // Convert to base64
           const base64 = await blobToBase64(blob);
-          console.log("✅ Base64 conversion successful:", {
-            base64Length: base64.length,
-            base64Preview: base64.substring(0, 50) + "...",
-          });
 
           setVoiceRecording((prev) => ({
             ...prev,
@@ -190,7 +153,6 @@ export default function SocialOverlay({
             mediaRecorder: null,
           }));
         } catch (error) {
-          console.error("❌ Failed to convert blob to base64:", error);
           setVoiceRecording((prev) => ({
             ...prev,
             isRecording: false,
@@ -204,12 +166,10 @@ export default function SocialOverlay({
         // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => {
           track.stop();
-          console.log("🎤 Microphone track stopped");
         });
       };
 
       mediaRecorder.onerror = (event) => {
-        console.error("❌ MediaRecorder error:", event);
         alert("Recording error occurred. Please try again.");
 
         // Clean up on error
@@ -233,8 +193,6 @@ export default function SocialOverlay({
         base64: null,
       }));
 
-      console.log("🎤 Voice recording started successfully");
-
       // Start duration counter
       const startTime = Date.now();
       const interval = setInterval(() => {
@@ -247,7 +205,6 @@ export default function SocialOverlay({
 
           // Auto-stop after 60 seconds
           if (elapsed >= 60) {
-            console.log("⏰ Auto-stopping recording after 60 seconds");
             stopVoiceRecording();
             clearInterval(interval);
           }
@@ -256,8 +213,6 @@ export default function SocialOverlay({
         }
       }, 1000);
     } catch (error: any) {
-      console.error("❌ Error starting voice recording:", error);
-
       if (error.name === "NotAllowedError") {
         alert(
           "Microphone access denied. Please allow microphone access and try again."
@@ -281,68 +236,42 @@ export default function SocialOverlay({
   };
 
   const stopVoiceRecording = () => {
-    console.log("🛑 Stopping voice recording...");
-
     if (
       voiceRecording.mediaRecorder &&
       voiceRecording.mediaRecorder.state === "recording"
     ) {
-      console.log("🛑 MediaRecorder stop called");
       voiceRecording.mediaRecorder.stop();
-    } else {
-      console.log("⚠️ MediaRecorder not in recording state");
     }
   };
 
   const playVoiceRecording = () => {
-    console.log("▶️ Playing voice recording...");
-
     if (voiceRecording.url && !voiceRecording.isPlaying) {
-      console.log("🎵 Creating audio player with URL:", voiceRecording.url);
-
       try {
         const audio = new Audio(voiceRecording.url);
 
         setVoiceRecording((prev) => ({ ...prev, isPlaying: true }));
 
-        audio.oncanplay = () => {
-          console.log("✅ Audio can play");
-        };
-
-        audio.onloadstart = () => {
-          console.log("🔄 Audio loading started");
-        };
-
         audio.onended = () => {
-          console.log("⏹️ Audio playback ended");
           setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
         };
 
         audio.onerror = (error) => {
-          console.error("❌ Audio playback error:", error);
           setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
           alert("Error playing voice recording. Please try recording again.");
         };
 
         audio.play().catch((error) => {
-          console.error("❌ Error starting audio playback:", error);
           setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
         });
       } catch (error) {
-        console.error("❌ Error creating audio player:", error);
         setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
       }
-    } else {
-      console.log("⚠️ Cannot play: URL missing or already playing");
     }
   };
 
   const deleteVoiceRecording = () => {
-    console.log("🗑️ Deleting voice recording");
-
     if (voiceRecording.url) {
       URL.revokeObjectURL(voiceRecording.url);
-      console.log("🗑️ Object URL revoked");
     }
 
     setVoiceRecording({
@@ -355,11 +284,7 @@ export default function SocialOverlay({
       base64: null,
       mediaRecorder: null,
     });
-
-    console.log("✅ Voice recording deleted successfully");
   };
-
-  // REPLACE the entire handleShare function with this ENHANCED version:
 
   const handleShare = async () => {
     // Check if we have any selections
@@ -368,21 +293,8 @@ export default function SocialOverlay({
     const totalSelected = friendCount + campfireCount;
 
     if (totalSelected === 0) {
-      console.log("⚠️ No recipients selected");
       return;
     }
-
-    console.log("🚀 Starting enhanced clip share process...");
-    console.log("📊 Enhanced share details:", {
-      selectedFriends,
-      selectedCampfires,
-      friendCount,
-      campfireCount,
-      totalSelected,
-      shareTarget, // This will show the UI state, but we'll handle both types
-      userFriends: userFriends.map(f => ({ id: f.id, name: f.name })),
-      userCampfires: userCampfires.map(c => ({ id: c.id, name: c.name })),
-    });
 
     setIsCreating(true);
     setIsSharing(true);
@@ -391,20 +303,12 @@ export default function SocialOverlay({
       // Prepare reaction data with proper blob handling
       let reactionData = undefined;
       if (reactionType === "text" && reactionContent.trim()) {
-        console.log("📝 Preparing text reaction");
         reactionData = {
           type: "text" as const,
           content: reactionContent.trim(),
           timestamp: Date.now(),
         };
       } else if (reactionType === "voice" && voiceRecording.blob && voiceRecording.base64) {
-        console.log("🎤 Preparing voice reaction:", {
-          blobSize: voiceRecording.blob.size,
-          blobType: voiceRecording.blob.type,
-          duration: voiceRecording.duration,
-          base64Length: voiceRecording.base64.length,
-        });
-
         reactionData = {
           type: "voice" as const,
           content: "Voice message",
@@ -436,68 +340,36 @@ export default function SocialOverlay({
 
       // Share to friends if any are selected
       if (friendCount > 0) {
-        console.log("👥 Sharing to friends:", selectedFriends);
         const friendClipData = {
           ...baseClipData,
           sharedWith: selectedFriends,
           shareTarget: "friends" as const,
         };
 
-        console.log("📦 Friend clip data prepared:", {
-          contentTitle: friendClipData.contentTitle,
-          shareTarget: friendClipData.shareTarget,
-          recipientCount: friendClipData.sharedWith.length,
-          hasReaction: !!friendClipData.reaction,
-          reactionType: friendClipData.reaction?.type,
-          fromUser: friendClipData.sharedBy.name,
-        });
-
         try {
           friendClipId = await createClip(friendClipData);
-          console.log("✅ Friend clip shared successfully with ID:", friendClipId);
         } catch (error) {
-          console.error("❌ Failed to share to friends:", error);
           throw new Error(`Failed to share to friends: ${error}`);
         }
       }
 
       // Share to campfires if any are selected
       if (campfireCount > 0) {
-        console.log("🔥 Sharing to campfires:", selectedCampfires);
         const campfireClipData = {
           ...baseClipData,
           sharedWith: selectedCampfires,
           shareTarget: "campfires" as const,
         };
 
-        console.log("📦 Campfire clip data prepared:", {
-          contentTitle: campfireClipData.contentTitle,
-          shareTarget: campfireClipData.shareTarget,
-          recipientCount: campfireClipData.sharedWith.length,
-          hasReaction: !!campfireClipData.reaction,
-          reactionType: campfireClipData.reaction?.type,
-          fromUser: campfireClipData.sharedBy.name,
-        });
-
         try {
           campfireClipId = await createClip(campfireClipData);
-          console.log("✅ Campfire clip shared successfully with ID:", campfireClipId);
         } catch (error) {
-          console.error("❌ Failed to share to campfires:", error);
           throw new Error(`Failed to share to campfires: ${error}`);
         }
       }
 
       // Success if at least one sharing succeeded
       if (friendClipId || campfireClipId) {
-        console.log("✅ Clip sharing completed successfully:", {
-          friendClipId,
-          campfireClipId,
-          sharedToFriends: friendCount,
-          sharedToCampfires: campfireCount,
-          totalShared: totalSelected,
-        });
-
         setStep("success");
 
         setTimeout(() => {
@@ -509,7 +381,6 @@ export default function SocialOverlay({
         throw new Error("Failed to share to any recipients");
       }
     } catch (error) {
-      console.error("❌ Failed to create clip:", error);
       setIsCreating(false);
       setIsSharing(false);
       setStep("clip");
@@ -545,12 +416,10 @@ export default function SocialOverlay({
     );
   };
 
-  // REPLACE the getSelectedCount function:
   const getSelectedCount = () => {
     return selectedFriends.length + selectedCampfires.length;
   };
 
-  // REPLACE the getSelectedNames function:
   const getSelectedNames = () => {
     const friendNames = selectedFriends.map((id) => {
       const friend = userFriends.find((f) => f.id === id);
@@ -925,7 +794,6 @@ export default function SocialOverlay({
         )}
       </div>
 
-      {/* // FIND the Share button and UPDATE the text: */}
       <button
         onClick={handleShare}
         disabled={getSelectedCount() === 0 || isSharing}

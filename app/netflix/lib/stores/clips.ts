@@ -67,7 +67,6 @@ interface ClipsState {
 
 // Import FireStories integration with proper error handling
 const shareClipToFireStories = async (clip: SharedClip): Promise<boolean> => {
-
   try {
     // Dynamic import to avoid circular dependencies
     const { FireStoriesIntegration } = await import(
@@ -75,7 +74,6 @@ const shareClipToFireStories = async (clip: SharedClip): Promise<boolean> => {
     );
     return await FireStoriesIntegration.shareClipToFireStories(clip);
   } catch (error) {
-    console.error("Failed to share clip to FireStories:", error);
     return false;
   }
 };
@@ -92,48 +90,21 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
       .substr(2, 9)}`;
     const clipDataId = `clip_data_${Date.now()}`;
 
-    console.log("🎬 Creating clip with enhanced audio support:", {
-      clipId,
-      contentTitle: clipInput.contentTitle,
-      shareTarget: clipInput.shareTarget,
-      recipientCount: clipInput.sharedWith.length,
-      hasReaction: !!clipInput.reaction,
-      reactionType: clipInput.reaction?.type,
-      hasVoiceBlob: !!clipInput.reaction?.voiceBlob,
-      voiceBlobSize: clipInput.reaction?.voiceBlob?.size,
-    });
-
     // Enhanced voice blob handling
     let processedReaction = clipInput.reaction;
     if (clipInput.reaction?.type === "voice" && clipInput.reaction.voiceBlob) {
-      console.log("🎤 Processing voice reaction for storage:", {
-        originalBlobSize: clipInput.reaction.voiceBlob.size,
-        originalBlobType: clipInput.reaction.voiceBlob.type,
-        duration: clipInput.reaction.voiceDuration,
-      });
-
       try {
         const blobToBase64Async = (blob: Blob): Promise<string> => {
           return new Promise((resolve, reject) => {
-            console.log("🔄 Converting blob to base64 in clips store:", {
-              size: blob.size,
-              type: blob.type,
-            });
-
             const reader = new FileReader();
             reader.onload = () => {
               if (typeof reader.result === "string") {
-                console.log(
-                  "✅ Blob to base64 conversion successful in clips store"
-                );
                 resolve(reader.result);
               } else {
-                console.error("❌ FileReader result is not a string");
                 reject(new Error("Failed to convert blob to base64"));
               }
             };
             reader.onerror = (error) => {
-              console.error("❌ FileReader error:", error);
               reject(error);
             };
             reader.readAsDataURL(blob);
@@ -144,18 +115,12 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
         const base64Audio = await blobToBase64Async(
           clipInput.reaction.voiceBlob
         );
-
+        
         processedReaction = {
           ...clipInput.reaction,
           voiceBase64: base64Audio,
         };
-
-        console.log("✅ Voice reaction processed successfully:", {
-          hasBase64: !!base64Audio,
-          base64Length: base64Audio.length,
-        });
       } catch (error) {
-        console.error("❌ Failed to process voice reaction:", error);
         // Continue with clip creation but without voice data
         processedReaction = {
           ...clipInput.reaction,
@@ -184,12 +149,6 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
       platform: "Netflix",
     };
 
-    console.log("📦 Final clip data prepared:", {
-      clipId: newClip.id,
-      hasProcessedReaction: !!newClip.reaction,
-      reactionHasBase64: !!newClip.reaction?.voiceBase64,
-    });
-
     // Add clip to store with processing status
     set((state) => ({
       sharedClips: [...state.sharedClips, { ...newClip, status: "processing" }],
@@ -207,14 +166,11 @@ export const useClipsStore = create<ClipsState>()((set, get) => ({
           ),
         }));
 
-        console.log("✅ Netflix clip shared successfully to FireStories");
         return newClip.id;
       } else {
         throw new Error("Failed to share clip to FireStories");
       }
     } catch (error) {
-      console.error("❌ Failed to create and share clip:", error);
-
       // Update status to failed
       set((state) => ({
         sharedClips: state.sharedClips.map((clip) =>

@@ -1,3 +1,11 @@
+"use client"
+
+import { useEffect,useState } from "react"
+import { useRouter } from "next/navigation"
+import { usePrimeAuthStore } from "../lib/stores/auth"
+import { PrimeUserDataService } from "../lib/services/user-data"
+import { useStorageListener } from "../hooks/use-storage-listener"
+
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import ContentRow from "../components/home/ContentRow"
@@ -106,6 +114,43 @@ const continueWatching: ContentItem[] = [
 ]
 
 export default function BookmarksPage() {
+  const router = useRouter()
+  const { user, setUser } = usePrimeAuthStore()
+  const [loading, setLoading] = useState(true)
+
+  // Add storage listener for prime-user changes
+const { timestamp } = useStorageListener("prime-user")
+
+useEffect(() => {
+  console.log('Prime Account: Storage change detected, reinitializing user data')
+  
+  // Clear current user and loading state
+  setLoading(true)
+  if (user) {
+    setUser(null)
+  }
+  
+  // Initialize user data from FireStories
+  const completeUserData = PrimeUserDataService.initializeFromFireStories()
+  
+  if (completeUserData) {
+    setUser(completeUserData)
+    console.log('Prime Account: User initialized/updated:', {
+      user: completeUserData.name,
+      friends: completeUserData.friends?.length || 0,
+      campfires: completeUserData.campfires?.length || 0
+    })
+  } else {
+    // If no user data available, redirect to main app
+    console.log('Prime Account: No user data found, redirecting to FireStories')
+    router.push("/")
+    return
+  }
+  
+  setLoading(false)
+}, [timestamp, setUser, router]) // React to storage changes via timestamp
+
+
   return (
     <div className="min-h-screen bg-[#0F171E] pt-20 page-transition">
       {/* Header Section */}

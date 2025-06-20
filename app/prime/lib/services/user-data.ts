@@ -1,11 +1,7 @@
-import type {
-  NetflixUser,
-  NetflixFriend,
-  NetflixCampfire,
-} from "../stores/auth";
+import type { User } from "@/lib/user-management";
 
-// Interface for FireStories User (matches the main app structure)
-interface FireStoriesUser {
+// Interface for Prime Video User (matches the FireStories structure)
+export interface PrimeUser {
   id: number;
   name: string;
   email: string;
@@ -13,28 +9,30 @@ interface FireStoriesUser {
   bio: string;
   location: string;
   isOnline: boolean;
-  lastSeen: string;
   status: string;
-  currentShow?: string;
-  campfires: number[];
+  friends: PrimeFriend[];
+  campfires: PrimeCampfire[];
 }
 
-// Interface for FireStories Campfire
-interface FireStoriesCampfire {
+export interface PrimeFriend {
   id: number;
   name: string;
-  members: string[];
-  memberIds: number[];
   avatar: string;
-  lastActivity: string;
-  messageCount: number;
-  clipCount: number;
-  isActive: boolean;
+  isOnline: boolean;
+  status: string;
 }
 
-export class NetflixUserDataService {
+export interface PrimeCampfire {
+  id: number;
+  name: string;
+  avatar: string;
+  members: string[];
+  memberCount: number;
+}
+
+export class PrimeUserDataService {
   // Get all users from FireStories localStorage
-  private static getFireStoriesUsers(): FireStoriesUser[] {
+  private static getFireStoriesUsers(): User[] {
     try {
       const users = localStorage.getItem("firetv_users");
       if (users) {
@@ -48,48 +46,8 @@ export class NetflixUserDataService {
     }
   }
 
-  // Get all campfires from FireStories
-  private static getFireStoriesCampfires(): FireStoriesCampfire[] {
-    // Since campfires are not stored in localStorage, use the hardcoded ones
-    return [
-      {
-        id: 1,
-        name: "Movie Night Squad",
-        members: ["Ashu Sharma", "Aryav Gupta", "Divya Sharma"],
-        memberIds: [1, 2, 4],
-        avatar: "/placeholder.svg?height=60&width=60",
-        lastActivity: "2 min ago",
-        messageCount: 47,
-        clipCount: 12,
-        isActive: true,
-      },
-      {
-        id: 2,
-        name: "Binge Busters",
-        members: ["Ashu Sharma", "Arnav Nigam"],
-        memberIds: [1, 3],
-        avatar: "/placeholder.svg?height=60&width=60",
-        lastActivity: "1 hour ago",
-        messageCount: 23,
-        clipCount: 8,
-        isActive: true,
-      },
-      {
-        id: 3,
-        name: "Weekend Warriors",
-        members: ["Aryav Gupta", "Arnav Nigam"],
-        memberIds: [2, 3],
-        avatar: "/placeholder.svg?height=60&width=60",
-        lastActivity: "3 hours ago",
-        messageCount: 31,
-        clipCount: 15,
-        isActive: false,
-      },
-    ];
-  }
-
   // Fallback users if localStorage fails
-  private static getFallbackUsers(): FireStoriesUser[] {
+  private static getFallbackUsers(): User[] {
     return [
       {
         id: 1,
@@ -100,8 +58,8 @@ export class NetflixUserDataService {
         location: "Mumbai, India",
         isOnline: true,
         lastSeen: "Online",
-        status: "Watching Netflix",
-        currentShow: "Stranger Things",
+        status: "Watching Prime Video",
+        currentShow: "The Boys",
         campfires: [1, 2],
       },
       {
@@ -114,7 +72,7 @@ export class NetflixUserDataService {
         isOnline: true,
         lastSeen: "Online",
         status: "Watching Prime Video",
-        currentShow: "The Boys",
+        currentShow: "The Marvelous Mrs. Maisel",
         campfires: [1, 3],
       },
       {
@@ -145,7 +103,7 @@ export class NetflixUserDataService {
   }
 
   // Get friends for a specific user (all other users)
-  static getUserFriends(userId: number): NetflixFriend[] {
+  static getUserFriends(userId: number): PrimeFriend[] {
     const allUsers = this.getFireStoriesUsers();
     return allUsers
       .filter((user) => user.id !== userId)
@@ -159,24 +117,33 @@ export class NetflixUserDataService {
   }
 
   // Get campfires for a specific user
-  static getUserCampfires(userId: number): NetflixCampfire[] {
+  static getUserCampfires(userId: number): PrimeCampfire[] {
     const user = this.getFireStoriesUsers().find((u) => u.id === userId);
     if (!user || !user.campfires) return [];
 
-    const allCampfires = this.getFireStoriesCampfires();
-    return allCampfires
-      .filter((campfire) => user.campfires.includes(campfire.id))
-      .map((campfire) => ({
-        id: campfire.id,
-        name: campfire.name,
-        avatar: campfire.avatar,
-        members: campfire.members,
-        memberCount: campfire.members.length,
-      }));
+    const campfireNames: { [key: number]: string } = {
+      1: "Movie Night Squad",
+      2: "Binge Busters", 
+      3: "Weekend Warriors",
+    };
+
+    const campfireMembers: { [key: number]: string[] } = {
+      1: ["Ashu Sharma", "Aryav Gupta", "Divya Sharma"],
+      2: ["Ashu Sharma", "Arnav Nigam"],
+      3: ["Aryav Gupta", "Arnav Nigam"],
+    };
+
+    return user.campfires.map((campfireId) => ({
+      id: campfireId,
+      name: campfireNames[campfireId] || `Campfire ${campfireId}`,
+      avatar: "/placeholder.svg?height=60&width=60",
+      members: campfireMembers[campfireId] || [],
+      memberCount: campfireMembers[campfireId]?.length || 0,
+    }));
   }
 
-  // Get complete user data for Netflix
-  static getNetflixUserData(userId: number): NetflixUser | null {
+  // Get complete user data for Prime Video
+  static getPrimeUserData(userId: number): PrimeUser | null {
     const users = this.getFireStoriesUsers();
     const user = users.find((u) => u.id === userId);
 
@@ -190,24 +157,28 @@ export class NetflixUserDataService {
       name: user.name,
       avatar: user.avatar,
       email: user.email,
+      bio: user.bio,
+      location: user.location,
+      isOnline: user.isOnline,
+      status: user.status,
       friends,
       campfires,
     };
   }
 
   // Initialize user data from FireStories localStorage
-  static initializeFromFireStories(): NetflixUser | null {
+  static initializeFromFireStories(): PrimeUser | null {
     try {
-      const netflixUserData = localStorage.getItem("netflix-user");
-      if (!netflixUserData) return null;
+      const primeUserData = localStorage.getItem("prime-user");
+      if (!primeUserData) return null;
 
-      const basicUserData = JSON.parse(netflixUserData);
-      const completeUserData = this.getNetflixUserData(basicUserData.id);
+      const basicUserData = JSON.parse(primeUserData);
+      const completeUserData = this.getPrimeUserData(basicUserData.id);
 
-      console.log("Netflix user data initialized:", completeUserData);
+      console.log("Prime user data initialized:", completeUserData);
       return completeUserData;
     } catch (error) {
-      console.error("Error initializing Netflix user data:", error);
+      console.error("Error initializing Prime user data:", error);
       return null;
     }
   }

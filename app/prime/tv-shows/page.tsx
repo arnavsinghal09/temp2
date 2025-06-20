@@ -2,9 +2,14 @@ import { Suspense } from "react"
 import type { Metadata } from "next"
 import ContentRow from "../components/home/ContentRow"
 import FeaturedBanner from "../components/home/FeaturedBanner"
+import { useRouter } from "next/navigation"
+import { usePrimeAuthStore } from "../lib/stores/auth"
+import { useEffect, useState } from "react"
+import { PrimeUserDataService } from "../lib/services/user-data"
 import LoadingSkeleton from "../components/ui/LoadingSkeleton"
-import {recentlyAdded, topTVShows} from "../lib/data/mockData"
+import { recentlyAdded, topTVShows } from "../lib/data/mockData"
 import type { FeaturedContent } from "../lib/types/index"
+import { useStorageListener } from "../hooks/use-storage-listener"
 import type { ContentItem } from "../lib/types/index"
 
 export const metadata: Metadata = {
@@ -28,8 +33,8 @@ const featuredMovie: FeaturedContent = {
 }
 
 const actionMovies: ContentItem[] = [
-  
-  
+
+
   {
     id: "action-5",
     title: "Fallout",
@@ -82,11 +87,11 @@ const actionMovies: ContentItem[] = [
     rating: "7.3",
     genre: "Action",
   },
-  
+
 ]
 
 const comedyMovies: ContentItem[] = [
-  
+
   {
     id: "comedy-2",
     title: "The Final Destination",
@@ -139,7 +144,7 @@ const comedyMovies: ContentItem[] = [
     rating: "7.4",
     genre: "Comedy",
   },
-  
+
 ]
 
 const dramaMovies: ContentItem[] = [
@@ -164,7 +169,7 @@ const dramaMovies: ContentItem[] = [
     rating: "7.8",
     genre: "Drama",
   },
-  
+
   {
     id: "drama-3",
     title: "Final Destination 4",
@@ -176,7 +181,7 @@ const dramaMovies: ContentItem[] = [
     rating: "7.7",
     genre: "Drama",
   },
-    {
+  {
     id: "drama-5",
     title: "The Tomorrow War",
     thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/The+tomorrow+war.png",
@@ -199,7 +204,42 @@ const dramaMovies: ContentItem[] = [
 
 ]
 
-export default function MoviesPage() {
+export default function TvShowPage() {
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { user, setUser } = usePrimeAuthStore()
+  // Add storage listener for prime-user changes
+  const { timestamp } = useStorageListener("prime-user")
+
+  useEffect(() => {
+    console.log('Prime Account: Storage change detected, reinitializing user data')
+
+    // Clear current user and loading state
+    setLoading(true)
+    if (user) {
+      setUser(null)
+    }
+
+    // Initialize user data from FireStories
+    const completeUserData = PrimeUserDataService.initializeFromFireStories()
+
+    if (completeUserData) {
+      setUser(completeUserData)
+      console.log('Prime Account: User initialized/updated:', {
+        user: completeUserData.name,
+        friends: completeUserData.friends?.length || 0,
+        campfires: completeUserData.campfires?.length || 0
+      })
+    } else {
+      // If no user data available, redirect to main app
+      console.log('Prime Account: No user data found, redirecting to FireStories')
+      router.push("/")
+      return
+    }
+
+    setLoading(false)
+  }, [timestamp, setUser, router]) // React to storage changes via timestamp
+
   return (
     <div className="pt-20 page-transition">
       <Suspense fallback={<LoadingSkeleton type="hero" />}>

@@ -1,62 +1,104 @@
-import { Suspense } from "react";
-import FeaturedBanner from "./components/home/FeaturedBanner";
-import ContentRow from "./components/ContentRow";
-import LoadingSkeleton from "./components/ui/LoadingSkeleton";
+"use client"
+import { useStorageListener } from "./hooks/use-storage-listener"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { usePrimeAuthStore } from "./lib/stores/auth"
+import { PrimeUserDataService } from "./lib/services/user-data"
+import FeaturedBanner from "./components/home/FeaturedBanner"
+import ContentRow from "./components/ContentRow"
+import LoadingSkeleton from "./components/ui/LoadingSkeleton"
 import {
   featuredContent,
   recentlyAdded,
   featuredOriginals,
   popularMovies,
   topTVShows,
-} from "./lib/mockData";
-import type { Metadata } from "next";
+} from "./lib/mockData"
+import type { Metadata } from "next"
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Home - Stream Your Favorite Content",
   description:
-    "Discover trending movies, TV shows, and exclusive originals on PrimeClone",
-};
+    "Discover trending movies, TV shows, and exclusive originals on Prime Video",
+}
 
 export default function HomePage() {
+  const router = useRouter()
+  const { user, setUser } = usePrimeAuthStore()
+
+  // Add storage listener for prime-user changes
+  const { timestamp } = useStorageListener("prime-user")
+
+  useEffect(() => {
+    console.log('Prime Home: Storage change detected, reinitializing user data')
+
+    // Clear current user first
+    if (user) {
+      setUser(null)
+    }
+
+    // Initialize user data from FireStories
+    const completeUserData = PrimeUserDataService.initializeFromFireStories()
+
+    if (completeUserData) {
+      setUser(completeUserData)
+      console.log('Prime Home: User initialized/updated:', {
+        user: completeUserData.name,
+        friends: completeUserData.friends?.length || 0,
+        campfires: completeUserData.campfires?.length || 0
+      })
+    } else {
+      // If no user data available, redirect to main app
+      console.log('Prime Home: No user data found, redirecting to FireStories')
+      router.push("/")
+      return
+    }
+  }, [timestamp, setUser, router]) // React to storage changes via timestamp
+
+
+  // Show loading if user is not initialized
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0F171E] pt-20">
+        <LoadingSkeleton type="hero" />
+        <div className="py-12 space-y-12">
+          <LoadingSkeleton type="row" />
+          <LoadingSkeleton type="row" />
+          <LoadingSkeleton type="row" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="pt-20 page-transition">
-      <Suspense fallback={<LoadingSkeleton type="hero" />}>
-        <FeaturedBanner content={featuredContent} />
-      </Suspense>
+      <FeaturedBanner content={featuredContent} />
 
       <div className="py-12 space-y-12">
-        <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow
-            title="Featured Originals"
-            items={featuredOriginals}
-            seeMoreLink="#"
-          />
-        </Suspense>
+        <ContentRow
+          title="Featured Originals"
+          items={featuredOriginals}
+          seeMoreLink="#"
+        />
 
-        <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow
-            title="Trending Now"
-            items={popularMovies}
-            seeMoreLink="#"
-          />
-        </Suspense>
+        <ContentRow
+          title="Trending Now"
+          items={popularMovies}
+          seeMoreLink="#"
+        />
 
-        <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow
-            title="Popular TV Shows"
-            items={topTVShows}
-            seeMoreLink="#"
-          />
-        </Suspense>
+        <ContentRow
+          title="Popular TV Shows"
+          items={topTVShows}
+          seeMoreLink="#"
+        />
 
-        <Suspense fallback={<LoadingSkeleton type="row" />}>
-          <ContentRow
-            title="Recently Added"
-            items={recentlyAdded}
-            seeMoreLink="#"
-          />
-        </Suspense>
+        <ContentRow
+          title="Recently Added"
+          items={recentlyAdded}
+          seeMoreLink="#"
+        />
       </div>
     </div>
-  );
+  )
 }

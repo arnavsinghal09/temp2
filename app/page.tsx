@@ -20,6 +20,8 @@ import { UserAccountsPage } from "@/components/auth/user-accounts-page";
 import { contentRows, getCampfiresForUser, mostSharedClips } from "@/lib/data";
 import type { Campfire, ChatParticipant } from "@/lib/types";
 
+
+
 export default function FireTVInterface() {
   const [activeTab, setActiveTab] = useState("Home");
   const [selectedCampfire, setSelectedCampfire] =

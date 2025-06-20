@@ -54,8 +54,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
 
   // Enhanced back navigation handler with immediate browser fallback
   const handleBackNavigation = () => {
-    console.log('🔙 Back button clicked');
-    
     // Pause video before navigating
     const video = videoRef.current;
     if (video && isPlaying) {
@@ -65,33 +63,26 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
     
     // Use browser's native history first (most reliable)
     try {
-      console.log('📊 History length:', window.history.length);
-      
       if (window.history.length > 1) {
-        // Use native browser back
         window.history.back();
-        console.log('✅ Used window.history.back()');
         return;
       }
     } catch (error) {
-      console.error('❌ window.history.back() failed:', error);
+      // Silent fallback to next option
     }
     
     // Try Next.js router as secondary option
     try {
       router.push('/');
-      console.log('✅ Used router.push to home');
       return;
     } catch (routerError) {
-      console.error('❌ Router navigation failed:', routerError);
+      // Silent fallback to next option
     }
     
     // Final fallback: hard redirect
     try {
       window.location.href = '/';
-      console.log('✅ Used window.location redirect');
     } catch (locationError) {
-      console.error('❌ All navigation methods failed:', locationError);
       // At this point, try to at least close/refresh
       window.location.reload();
     }
@@ -113,7 +104,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
         video.currentTime = startTime;
         setCurrentTime(startTime);
         setShowTimestampNotification(true);
-        console.log(`🎯 Seeking to timestamp: ${startTime}s`);
         
         // Hide notification after 3 seconds
         setTimeout(() => setShowTimestampNotification(false), 3000);
@@ -243,8 +233,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
     const percent = (e.clientX - rect.left) / rect.width;
     const newTime = percent * duration;
     video.currentTime = newTime;
-    
-    console.log(`🎯 Seeked to: ${formatTime(newTime)}`);
   };
 
   // Handle timeline hover
@@ -297,7 +285,7 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
         await document.exitFullscreen();
       }
     } catch (error) {
-      console.error('Fullscreen error:', error);
+      // Silent error handling
     }
   };
 
@@ -308,16 +296,7 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
 
     const newTime = Math.max(0, Math.min(duration, currentTime + seconds));
     video.currentTime = newTime;
-    
-    const direction = seconds > 0 ? 'forward' : 'backward';
-    console.log(`⏭️ Seeked ${Math.abs(seconds)}s ${direction}: ${formatTime(currentTime)} → ${formatTime(newTime)}`);
   };
-
-  // Deprecated skipTime function (kept for backward compatibility)
-  // const skipTime = (seconds: number) => {
-  //   seekRelative(seconds);
-
-  // };
 
   const formatTime = (time: number) => {
     if (isNaN(time)) return '0:00';
@@ -345,9 +324,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
     // Capture the EXACT current timestamp when clip button is pressed
     const exactTimestamp = video.currentTime;
     setClipStartTime(exactTimestamp);
-    
-    console.log(`🎬 Clip button pressed at: ${formatTime(exactTimestamp)}`);
-    console.log(`📹 Video was ${isPlaying ? 'playing' : 'paused'}`);
 
     // Remember if video was playing
     setWasPlayingBeforeClip(isPlaying);
@@ -356,7 +332,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
     if (isPlaying) {
       video.pause();
       setIsPlaying(false);
-      console.log(`⏸️ Video paused for clipping`);
     }
     
     // Show controls and overlay
@@ -373,7 +348,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
     if (video && wasPlayingBeforeClip) {
       video.play();
       setIsPlaying(true);
-      console.log(`▶️ Resumed playing after clip creation`);
     }
     
     setWasPlayingBeforeClip(false);
@@ -464,8 +438,6 @@ export default function VideoPlayer({ content, startTime = null }: VideoPlayerPr
               <p className="text-gray-300 text-sm">{content.year} • {content.rating}</p>
             </div>
           </div>
-          
-          {/* Removed non-functional buttons - keeping only back button and title */}
         </div>
 
         {/* Center play button (when paused) */}

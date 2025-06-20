@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import type React from "react";
-
+import { dispatchStorageChange } from "@/app/prime/hooks/use-storage-listener"
 import { ChevronDown, LogOut, UserPlus } from "lucide-react";
 import {
   UserManager,
@@ -61,7 +61,12 @@ export function AccountSwitcher({
     UserManager.logout();
     onUserChange(null);
     setIsOpen(false);
+
+    // Clear Prime Video user data
+    localStorage.removeItem("prime-user");
+    dispatchStorageChange("prime-user", null);
   };
+
 
   const handleQuickSwitch = (credentials: (typeof DUMMY_CREDENTIALS)[0]) => {
     const user = UserManager.authenticateUser(
@@ -71,8 +76,12 @@ export function AccountSwitcher({
     if (user) {
       onUserChange(user);
       setIsOpen(false);
+
+      // Update Prime Video user data immediately
+      updatePrimeVideoUserData(user);
     }
   };
+
 
   const getCampfireNames = (campfireIds: number[]) => {
     const campfireNames: { [key: number]: string } = {
@@ -83,6 +92,70 @@ export function AccountSwitcher({
     return campfireIds
       .map((id) => campfireNames[id] || `Campfire ${id}`)
       .join(", ");
+  };
+  const updatePrimeVideoUserData = (currentUser: User) => {
+    if (!currentUser) return;
+
+    // Get user's friends (all other users)
+    const allUsers = UserManager.getAllUsers();
+    const userFriends = allUsers
+      .filter((u) => u.id !== currentUser.id)
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        avatar: u.avatar,
+        isOnline: u.isOnline,
+        status: u.status,
+      }));
+
+    // Get user's campfires
+    const userCampfires =
+      currentUser.campfires?.map((campfireId) => {
+        const campfireNames: { [key: number]: string } = {
+          1: "Movie Night Squad",
+          2: "Binge Busters",
+          3: "Weekend Warriors",
+        };
+        const campfireMembers: { [key: number]: string[] } = {
+          1: ["Ashu Sharma", "Aryav Gupta", "Divya Sharma"],
+          2: ["Ashu Sharma", "Arnav Nigam"],
+          3: ["Aryav Gupta", "Arnav Nigam"],
+        };
+        return {
+          id: campfireId,
+          name:
+            campfireNames[campfireId] ||
+            `Campfire ${campfireId}`,
+          avatar: "/placeholder.svg?height=60&width=60",
+          members: campfireMembers[campfireId] || [],
+          memberCount: campfireMembers[campfireId]?.length || 0,
+        };
+      }) || [];
+
+    const primeUserData = {
+      id: currentUser.id,
+      name: currentUser.name,
+      avatar: currentUser.avatar,
+      email: currentUser.email,
+      bio: currentUser.bio,
+      location: currentUser.location,
+      isOnline: currentUser.isOnline,
+      status: currentUser.status,
+      friends: userFriends,
+      campfires: userCampfires,
+    };
+
+    const primeUserDataString = JSON.stringify(primeUserData);
+    localStorage.setItem("prime-user", primeUserDataString);
+
+    // Dispatch custom event to notify Prime Video of the change
+    dispatchStorageChange("prime-user", primeUserDataString);
+
+    console.log("Updated Prime Video user data for account switch:", {
+      user: primeUserData.name,
+      friends: primeUserData.friends.length,
+      campfires: primeUserData.campfires.length,
+    });
   };
 
   if (!currentUser) {
