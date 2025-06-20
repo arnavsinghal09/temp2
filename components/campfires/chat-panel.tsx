@@ -77,7 +77,6 @@ function VoiceMessage({
       setIsPlaying(true);
       setAudioError(false);
 
-      // Try to play actual audio if available
       if (message.voiceData?.voiceBlob) {
         playActualAudio();
       } else {
@@ -128,14 +127,13 @@ function VoiceMessage({
 
         audio.onerror = () => {
           setAudioError(true);
-          simulatePlayback(); // Fallback to simulation
+          simulatePlayback();
         };
 
         audio.play();
         audioRef.current = audio;
       } catch (error) {
-        console.error("Error playing voice message:", error);
-        simulatePlayback(); // Fallback to simulation
+        simulatePlayback();
       }
     } else {
       simulatePlayback();
@@ -243,13 +241,11 @@ function NetflixClipMessage({
         startTime
       )}`;
 
-      // Check if user can access Netflix
       const canAccess = localStorage.getItem("netflix-user");
 
       if (canAccess) {
         router.push(netflixUrl);
       } else {
-        // Prompt user to sign in to Netflix
         if (
           confirm(
             "You need to be signed in to Netflix to watch this clip. Go to Netflix now?"
@@ -263,110 +259,63 @@ function NetflixClipMessage({
 
   const handlePlayVoiceReaction = async () => {
     if (isPlayingReaction) {
-      console.log("⚠️ Voice reaction already playing, ignoring request");
       return;
     }
 
+    // Enhanced logging for friend vs campfire debugging
     console.log("🎵 Starting voice reaction playback:", {
+      messageId: message.id,
+      messageType: message.type,
+      sender: message.sender,
       hasReactionData: !!message.reactionData,
       reactionType: message.reactionData?.type,
       hasVoiceBlob: !!message.reactionData?.voiceBlob,
       hasVoiceBase64: !!message.reactionData?.voiceBase64,
+      voiceBlobSize: message.reactionData?.voiceBlob?.size,
+      voiceBlobType: message.reactionData?.voiceBlob?.type,
       voiceDuration: message.reactionData?.voiceDuration,
+      hasVoiceData: !!message.voiceData,
+      voiceDataUrl: message.voiceData?.audioUrl,
+      // Additional debugging info
+      chatContext: "Attempting to play in chat panel",
     });
 
     try {
       let audioBlob = message.reactionData?.voiceBlob;
 
-      // If no blob but have base64, reconstruct the blob
       if (!audioBlob && message.reactionData?.voiceBase64) {
-        console.log("🔄 No direct blob found, reconstructing from base64...");
-
         try {
           const reconstructed = await reconstructBlobFromBase64(
             message.reactionData.voiceBase64
           );
           audioBlob = reconstructed === null ? undefined : reconstructed;
-
-          if (audioBlob) {
-            console.log("✅ Blob reconstructed successfully:", {
-              size: audioBlob.size,
-              type: audioBlob.type,
-            });
-          } else {
-            console.error("❌ Failed to reconstruct blob from base64");
-          }
         } catch (conversionError) {
-          console.error(
-            "❌ Error during blob reconstruction:",
-            conversionError
-          );
+          // Handle error silently
         }
       }
 
       if (audioBlob && audioBlob instanceof Blob && audioBlob.size > 0) {
-        console.log("🎵 Playing audio blob:", {
-          size: audioBlob.size,
-          type: audioBlob.type,
-        });
-
         setIsPlayingReaction(true);
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
 
-        // Enhanced audio event logging
-        audio.onloadstart = () => {
-          console.log("🔄 Audio loading started");
-        };
-
-        audio.oncanplay = () => {
-          console.log("✅ Audio can play, duration:", audio.duration);
-        };
-
-        audio.onloadeddata = () => {
-          console.log("📊 Audio data loaded");
-        };
-
-        audio.ontimeupdate = () => {
-          // Optional: log progress (commented out to avoid spam)
-          // console.log("⏱️ Audio progress:", audio.currentTime, "/", audio.duration);
-        };
-
         audio.onended = () => {
-          console.log("⏹️ Audio playback ended naturally");
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
         };
 
         audio.onerror = (error) => {
-          console.error("❌ Audio playback error:", error);
-          console.error("❌ Audio error details:", {
-            error: audio.error,
-            networkState: audio.networkState,
-            readyState: audio.readyState,
-          });
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
           alert("Failed to play voice reaction. The audio may be corrupted.");
         };
 
         audio.onabort = () => {
-          console.log("⏹️ Audio playback aborted");
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
         };
 
-        audio.onstalled = () => {
-          console.log("⏸️ Audio playback stalled");
-        };
-
-        audio.onsuspend = () => {
-          console.log("⏸️ Audio loading suspended");
-        };
-
-        // Validate blob size before attempting playback
         if (audioBlob.size < 100) {
-          console.error("❌ Audio blob too small:", audioBlob.size, "bytes");
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
           alert("Voice reaction file is too small or corrupted.");
@@ -375,13 +324,10 @@ function NetflixClipMessage({
 
         try {
           await audio.play();
-          console.log("✅ Audio playback started successfully");
         } catch (playError: any) {
-          console.error("❌ Error starting audio playback:", playError);
           setIsPlayingReaction(false);
           URL.revokeObjectURL(audioUrl);
 
-          // Provide more specific error messages
           if (playError.name === "NotAllowedError") {
             alert(
               "Audio playback blocked. Please interact with the page first."
@@ -393,43 +339,35 @@ function NetflixClipMessage({
           }
         }
       } else {
-        console.error("❌ No valid audio data found:", {
-          hasBlob: !!audioBlob,
-          blobSize: audioBlob?.size,
-          blobType: audioBlob?.type,
-          isValidBlob: audioBlob instanceof Blob,
-          hasBase64: !!message.reactionData?.voiceBase64,
-        });
         alert(
           "Voice reaction could not be played. The audio data may be missing or corrupted."
         );
       }
     } catch (error) {
       setIsPlayingReaction(false);
-      console.error(
-        "❌ Unexpected error during voice reaction playback:",
-        error
-      );
       alert("An unexpected error occurred while playing the voice reaction.");
     }
   };
 
-  // Add this helper function to the chat panel component
   const reconstructBlobFromBase64 = async (
     base64Data: string
   ): Promise<Blob | null> => {
     try {
-      console.log("🔄 Reconstructing blob from base64:", {
-        dataLength: base64Data.length,
-        hasDataPrefix: base64Data.startsWith("data:"),
-      });
+    console.log("🔄 Reconstructing blob from base64 in chat panel:", {
+      dataLength: base64Data.length,
+      hasDataPrefix: base64Data.startsWith("data:"),
+      chatContext: "Friend chat panel reconstruction", // Add this line
+      base64Preview: base64Data.substring(0, 100) + "...", // Add this line
+    });
 
+    if (!base64Data || typeof base64Data !== "string") {
+      console.error("❌ Invalid base64 data in chat panel");
+      return null;
+    }
       if (!base64Data || typeof base64Data !== "string") {
-        console.error("❌ Invalid base64 data");
         return null;
       }
 
-      // Handle data URL format
       let base64String = base64Data;
       let mimeType = "audio/webm";
 
@@ -439,18 +377,12 @@ function NetflixClipMessage({
           const header = parts[0];
           base64String = parts[1];
 
-          // Extract MIME type
           const mimeMatch = header.match(/data:([^;]+)/);
           if (mimeMatch) {
             mimeType = mimeMatch[1];
           }
         }
       }
-
-      console.log("🔍 Base64 reconstruction details:", {
-        mimeType,
-        base64Length: base64String.length,
-      });
 
       const byteCharacters = atob(base64String);
       const byteNumbers = new Array(byteCharacters.length);
@@ -470,29 +402,14 @@ function NetflixClipMessage({
       const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
       const blob = new Blob([byteArray], { type: finalType });
 
-      console.log("✅ Blob reconstructed successfully:", {
-        size: blob.size,
-        type: blob.type,
-      });
-
       return blob;
     } catch (error) {
-      console.error("❌ Error reconstructing blob from base64:", error);
       return null;
     }
   };
 
-
-
-  // Enhanced base64 to blob conversion with better error handling
   const base64ToBlob = (base64Data: string): Blob => {
     try {
-      console.log("🔄 Converting base64 to blob...", {
-        dataLength: base64Data.length,
-        hasDataPrefix: base64Data.startsWith("data:"),
-      });
-
-      // Handle data URL format
       let base64String = base64Data;
       let mimeType = "audio/webm";
 
@@ -502,18 +419,12 @@ function NetflixClipMessage({
           const header = parts[0];
           base64String = parts[1];
 
-          // Extract MIME type
           const mimeMatch = header.match(/data:([^;]+)/);
           if (mimeMatch) {
             mimeType = mimeMatch[1];
           }
         }
       }
-
-      console.log("🔄 Decoded base64 info:", {
-        mimeType,
-        base64Length: base64String.length,
-      });
 
       const byteCharacters = atob(base64String);
       const byteNumbers = new Array(byteCharacters.length);
@@ -527,14 +438,8 @@ function NetflixClipMessage({
       const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
       const blob = new Blob([byteArray], { type: finalType });
 
-      console.log("✅ Blob created successfully:", {
-        size: blob.size,
-        type: blob.type,
-      });
-
       return blob;
     } catch (error: any) {
-      console.error("❌ Error converting base64 to blob:", error);
       throw new Error(`Failed to convert base64 to blob: ${error.message}`);
     }
   };
@@ -563,17 +468,14 @@ function NetflixClipMessage({
           className="w-full h-32 object-cover"
         />
 
-        {/* Netflix branding */}
         <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
           NETFLIX
         </div>
 
-        {/* Clip duration */}
         <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
           {message.clipData?.duration}
         </div>
 
-        {/* Clip timestamp range */}
         {message.clipData?.netflixData && (
           <div className="absolute bottom-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
             {formatTime(message.clipData.netflixData.startTime)} -{" "}
@@ -581,7 +483,6 @@ function NetflixClipMessage({
           </div>
         )}
 
-        {/* Play overlay */}
         <div
           className={cn(
             "absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 cursor-pointer",
@@ -610,7 +511,6 @@ function NetflixClipMessage({
         </div>
         <p className="text-[#ff6404] text-xs">{message.clipData?.platform}</p>
 
-        {/* Enhanced reaction display */}
         {message.reactionData && (
           <div className="mt-3 p-3 bg-gray-900/50 rounded-lg text-xs border border-gray-700">
             <div className="flex items-center space-x-2 mb-2">
@@ -658,7 +558,6 @@ function NetflixClipMessage({
                   </div>
                 </div>
 
-                {/* Voice waveform visualization */}
                 <div className="flex items-center justify-center space-x-1 py-2">
                   {Array.from({ length: 8 }, (_, index) => (
                     <div
@@ -687,14 +586,12 @@ function ClipMessage({
   message: ChatMessage;
   isCurrentUser: boolean;
 }) {
-  // Check if this is a Netflix clip
   if (message.clipData?.netflixData) {
     return (
       <NetflixClipMessage message={message} isCurrentUser={isCurrentUser} />
     );
   }
 
-  // Regular clip message (existing functionality)
   return (
     <div
       className={cn(
@@ -874,42 +771,19 @@ export function ChatPanel({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
     setShouldRender(!!participant);
   }, [participant]);
 
-  // Load messages when participant changes
-  // REPLACE THE ABOVE useEffect WITH THIS:
   useEffect(() => {
     if (participant && currentUser) {
-      console.log("🔍 Loading messages for chat panel:", {
-        participantId: participant.id,
-        participantType: participant.type,
-        participantName: participant.name,
-        currentUserId: currentUser.id,
-        currentUserName: currentUser.name,
-      });
-
       const loadedMessages = MessageSystem.getMessagesForChat(
         currentUser.id,
         participant.id,
         participant.type
       );
-
-      console.log("📋 Messages loaded for chat panel:", {
-        messageCount: loadedMessages.length,
-        messages: loadedMessages.map(msg => ({
-          id: msg.id,
-          type: msg.type,
-          sender: msg.sender,
-          timestamp: msg.timestamp,
-          hasNetflixClip: !!msg.clipData?.netflixData,
-          hasVoiceReaction: msg.reactionData?.type === "voice",
-        })),
-      });
 
       setMessages(loadedMessages);
     }
@@ -919,7 +793,6 @@ export function ChatPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -930,7 +803,6 @@ export function ChatPanel({
     }
   }, [newMessage]);
 
-  // Clean up recording timer on unmount
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) {
@@ -978,23 +850,9 @@ export function ChatPanel({
         ...messageData,
       };
 
-      // Send message through the message system
-      // REPLACE THE ABOVE PART WITH THIS:
-      console.log("📤 Sending message from chat panel:", {
-        messageType: newMsg.type,
-        messageId: newMsg.id,
-        fromUser: currentUser.name,
-        toParticipant: participant.name,
-        participantType: participant.type,
-        participantId: participant.id,
-      });
-
-      // Send message through the message system
       if (participant.type === "friend") {
-        console.log("👤 Sending direct message to friend");
         MessageSystem.sendDirectMessage(currentUser.id, participant.id, newMsg);
       } else {
-        console.log("🔥 Sending campfire message");
         MessageSystem.sendCampfireMessage(
           currentUser.id,
           participant.id,
@@ -1002,24 +860,13 @@ export function ChatPanel({
         );
       }
 
-      console.log("🔄 Reloading messages after send...");
-
-      // Reload messages to get the updated chat
       const updatedMessages = MessageSystem.getMessagesForChat(
         currentUser.id,
         participant.id,
         participant.type
       );
 
-      console.log("📊 Messages after reload:", {
-        previousCount: messages.length,
-        newCount: updatedMessages.length,
-        newMessage: updatedMessages.find(m => m.id === newMsg.id) ? "Found" : "NOT FOUND",
-      });
-
-      
       setMessages(updatedMessages);
-
       setNewMessage("");
       setSelectedFile(null);
     }
@@ -1045,7 +892,6 @@ export function ChatPanel({
 
   const handleVoiceRecord = () => {
     if (isRecording) {
-      // Stop recording
       setIsRecording(false);
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
@@ -1053,7 +899,6 @@ export function ChatPanel({
       }
 
       if (participant && currentUser) {
-        // Create voice message
         const minutes = Math.floor(recordingTime / 60);
         const seconds = recordingTime % 60;
         const durationStr = `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -1071,7 +916,6 @@ export function ChatPanel({
           },
         };
 
-        // Send voice message
         if (participant.type === "friend") {
           MessageSystem.sendDirectMessage(
             currentUser.id,
@@ -1086,7 +930,6 @@ export function ChatPanel({
           );
         }
 
-        // Reload messages
         const updatedMessages = MessageSystem.getMessagesForChat(
           currentUser.id,
           participant.id,
@@ -1098,7 +941,6 @@ export function ChatPanel({
       setRecordingTime(0);
       setRecordingWaveform([]);
     } else {
-      // Start recording
       setIsRecording(true);
       setRecordingWaveform([]);
 
@@ -1148,7 +990,6 @@ export function ChatPanel({
         className="hidden"
       />
 
-      {/* Overlay to prevent interaction with background */}
       <div className="fixed inset-0 bg-black/20 z-[60]" onClick={onClose} />
 
       <div
@@ -1162,7 +1003,6 @@ export function ChatPanel({
           bottom: "0",
         }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-gray-950 flex-shrink-0">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             <div className="w-10 h-10 bg-gradient-to-br from-[#ff6404] to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -1200,7 +1040,6 @@ export function ChatPanel({
           </div>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2 chat-scrollbar min-h-0">
           {messages.map((message) => (
             <MessageBubble
@@ -1212,7 +1051,6 @@ export function ChatPanel({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* File Preview */}
         {selectedFile && (
           <div className="px-4 py-2 border-t border-gray-800 bg-gray-900 flex-shrink-0">
             <div className="flex items-center justify-between bg-gray-800 rounded-lg p-3">
@@ -1249,7 +1087,6 @@ export function ChatPanel({
           </div>
         )}
 
-        {/* Recording UI */}
         {isRecording && (
           <div className="px-4 py-3 border-t border-gray-800 bg-gray-900 flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -1280,7 +1117,6 @@ export function ChatPanel({
           </div>
         )}
 
-        {/* Message Input */}
         {!isRecording && (
           <div className="px-4 py-4 border-t border-gray-800 bg-gray-950 flex-shrink-0">
             <div className="flex items-end space-x-3">
