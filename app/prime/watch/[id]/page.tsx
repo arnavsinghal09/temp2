@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { use } from "react";
 
 import { useRouter } from "next/navigation";
 import {
@@ -19,14 +20,14 @@ import ClipButton from "../../components/watch/ClipButton";
 import { getContentById } from "../../lib/data/mockData";
 
 interface WatchPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function WatchPage({ params }: WatchPageProps) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params); // Unwrap the Promise using React.use()
   const [isPlaying, setIsPlaying] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
@@ -76,7 +77,6 @@ export default function WatchPage({ params }: WatchPageProps) {
       video.removeEventListener("loadedmetadata", updateDuration);
     };
   }, [startTime]);
-
 
   const togglePlay = () => {
     if (videoRef.current) {
