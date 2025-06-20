@@ -133,15 +133,32 @@ export interface ChatMessage {
     thumbnail: string;
     duration: string;
     platform: string;
+    // New Netflix-specific fields
+    netflixData?: {
+      contentId: string;
+      startTime: number;
+      endTime: number;
+      clipId: string;
+      sharedFrom: "Netflix";
+    };
   };
   voiceData?: {
     duration: string;
     waveform: number[];
     audioUrl?: string;
+    // New field for voice blob data
+    voiceBlob?: Blob;
   };
   imageData?: {
     url: string;
     caption?: string;
+  };
+  // New field for combined clips with reactions
+  reactionData?: {
+    type: "text" | "voice";
+    content: string;
+    voiceBlob?: Blob;
+    voiceDuration?: string;
   };
 }
 

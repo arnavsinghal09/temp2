@@ -9,6 +9,11 @@ import {
   Share2,
   Users,
   User,
+  Mic,
+  MicOff,
+  Play,
+  Pause,
+  StopCircle,
 } from "lucide-react";
 import { useAuthStore } from "../../lib/stores/auth";
 import { useClipsStore } from "../../lib/stores/clips";
@@ -23,6 +28,17 @@ interface SocialOverlayProps {
 type Step = "clip" | "reaction" | "share" | "success";
 type ReactionType = "text" | "voice" | "video";
 type ShareTarget = "friends" | "campfires";
+
+// Voice recording state interface
+interface VoiceRecording {
+  isRecording: boolean;
+  isPlaying: boolean;
+  isPaused: boolean;
+  duration: number;
+  blob: Blob | null;
+  url: string | null;
+  mediaRecorder: MediaRecorder | null;
+}
 
 export default function SocialOverlay({
   content,
@@ -41,6 +57,17 @@ export default function SocialOverlay({
   const [selectedCampfires, setSelectedCampfires] = useState<number[]>([]);
   const [isSharing, setIsSharing] = useState(false);
 
+  // Voice recording state
+  const [voiceRecording, setVoiceRecording] = useState<VoiceRecording>({
+    isRecording: false,
+    isPlaying: false,
+    isPaused: false,
+    duration: 0,
+    blob: null,
+    url: null,
+    mediaRecorder: null,
+  });
+
   if (!user) return null;
 
   const startTime = currentTime;
@@ -58,16 +85,130 @@ export default function SocialOverlay({
 
   const handleSkipReaction = () => {
     setReactionContent("");
+    setVoiceRecording((prev) => ({ ...prev, blob: null, url: null }));
     setStep("share");
   };
 
+  // Voice recording functions
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        const url = URL.createObjectURL(blob);
+
+        setVoiceRecording((prev) => ({
+          ...prev,
+          isRecording: false,
+          blob,
+          url,
+          mediaRecorder: null,
+        }));
+
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.start();
+
+      setVoiceRecording((prev) => ({
+        ...prev,
+        isRecording: true,
+        duration: 0,
+        mediaRecorder,
+      }));
+
+      // Start duration counter
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        if (mediaRecorder.state === "recording") {
+          setVoiceRecording((prev) => ({
+            ...prev,
+            duration: Math.floor((Date.now() - startTime) / 1000),
+          }));
+        } else {
+          clearInterval(interval);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Error starting voice recording:", error);
+      alert("Could not access microphone. Please check permissions.");
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (
+      voiceRecording.mediaRecorder &&
+      voiceRecording.mediaRecorder.state === "recording"
+    ) {
+      voiceRecording.mediaRecorder.stop();
+    }
+  };
+
+  const playVoiceRecording = () => {
+    if (voiceRecording.url) {
+      const audio = new Audio(voiceRecording.url);
+      audio.play();
+
+      setVoiceRecording((prev) => ({ ...prev, isPlaying: true }));
+
+      audio.onended = () => {
+        setVoiceRecording((prev) => ({ ...prev, isPlaying: false }));
+      };
+    }
+  };
+
+  const deleteVoiceRecording = () => {
+    if (voiceRecording.url) {
+      URL.revokeObjectURL(voiceRecording.url);
+    }
+    setVoiceRecording({
+      isRecording: false,
+      isPlaying: false,
+      isPaused: false,
+      duration: 0,
+      blob: null,
+      url: null,
+      mediaRecorder: null,
+    });
+  };
+
   const handleShare = async () => {
+    if (getSelectedCount() === 0) return;
+
     setIsCreating(true);
     setIsSharing(true);
 
     try {
       const sharedWith =
         shareTarget === "friends" ? selectedFriends : selectedCampfires;
+
+      // Prepare reaction data
+      let reactionData = undefined;
+      if (reactionType === "text" && reactionContent.trim()) {
+        reactionData = {
+          type: "text" as const,
+          content: reactionContent.trim(),
+          timestamp: Date.now(),
+        };
+      } else if (reactionType === "voice" && voiceRecording.blob) {
+        reactionData = {
+          type: "voice" as const,
+          content: "Voice message",
+          timestamp: Date.now(),
+          voiceBlob: voiceRecording.blob,
+          voiceDuration: voiceRecording.duration,
+        };
+      }
 
       const clipData = {
         contentId: content.id,
@@ -82,17 +223,11 @@ export default function SocialOverlay({
           avatar: user.avatar,
         },
         sharedWith,
-        shareTarget, // 'friends' or 'campfires'
-        reaction: reactionContent
-          ? {
-              type: reactionType,
-              content: reactionContent,
-              timestamp: Date.now(),
-            }
-          : undefined,
+        shareTarget,
+        reaction: reactionData,
       };
 
-      const clipId = createClip(clipData);
+      const clipId = await createClip(clipData);
 
       if (clipId) {
         setStep("success");
@@ -102,7 +237,7 @@ export default function SocialOverlay({
           contentTitle: content.title,
           shareTarget,
           sharedWith: sharedWith.length,
-          reaction: reactionContent ? "Yes" : "No",
+          reactionType: reactionData?.type || "none",
         });
 
         setTimeout(() => {
@@ -118,6 +253,7 @@ export default function SocialOverlay({
       setIsCreating(false);
       setIsSharing(false);
       setStep("clip");
+      alert("Failed to share clip. Please try again.");
     }
   };
 
@@ -258,20 +394,144 @@ export default function SocialOverlay({
         </p>
       </div>
 
-      <div>
-        <textarea
-          value={reactionContent}
-          onChange={(e) => setReactionContent(e.target.value)}
-          placeholder="What did you think about this moment?"
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-netflix-red resize-none"
-          rows={4}
-          maxLength={280}
-        />
-        <div className="flex justify-between text-xs text-gray-400 mt-2">
-          <span>Share your thoughts...</span>
-          <span>{reactionContent.length}/280</span>
-        </div>
+      {/* Reaction Type Toggle */}
+      <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
+        <button
+          onClick={() => {
+            setReactionType("text");
+            deleteVoiceRecording(); // Clear voice recording when switching to text
+          }}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            reactionType === "text"
+              ? "bg-netflix-red text-white"
+              : "text-gray-400 hover:text-white"
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>Text</span>
+        </button>
+        <button
+          onClick={() => {
+            setReactionType("voice");
+            setReactionContent(""); // Clear text when switching to voice
+          }}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            reactionType === "voice"
+              ? "bg-netflix-red text-white"
+              : "text-gray-400 hover:text-white"
+          }`}
+        >
+          <Mic className="h-4 w-4" />
+          <span>Voice</span>
+        </button>
       </div>
+
+      {/* Text Reaction */}
+      {reactionType === "text" && (
+        <div>
+          <textarea
+            value={reactionContent}
+            onChange={(e) => setReactionContent(e.target.value)}
+            placeholder="What did you think about this moment?"
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-netflix-red resize-none"
+            rows={4}
+            maxLength={280}
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <span>Share your thoughts...</span>
+            <span>{reactionContent.length}/280</span>
+          </div>
+        </div>
+      )}
+
+      {/* Voice Reaction */}
+      {reactionType === "voice" && (
+        <div className="space-y-4">
+          {!voiceRecording.blob ? (
+            <div className="text-center">
+              <button
+                onClick={
+                  voiceRecording.isRecording
+                    ? stopVoiceRecording
+                    : startVoiceRecording
+                }
+                className={`p-4 rounded-full transition-all duration-300 ${
+                  voiceRecording.isRecording
+                    ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                    : "bg-netflix-red hover:bg-red-700"
+                } text-white`}
+              >
+                {voiceRecording.isRecording ? (
+                  <StopCircle className="h-8 w-8" />
+                ) : (
+                  <Mic className="h-8 w-8" />
+                )}
+              </button>
+              <p className="text-gray-400 mt-2">
+                {voiceRecording.isRecording
+                  ? `Recording... ${formatTime(voiceRecording.duration)}`
+                  : "Tap to record your voice reaction"}
+              </p>
+              {voiceRecording.isRecording && (
+                <div className="flex justify-center mt-4">
+                  <div className="flex items-center space-x-1">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-1 bg-netflix-red rounded-full animate-pulse"
+                        style={{
+                          height: `${Math.random() * 20 + 10}px`,
+                          animationDelay: `${i * 0.1}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-netflix-red rounded-full flex items-center justify-center">
+                    <Mic className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">Voice Reaction</p>
+                    <p className="text-gray-400 text-sm">
+                      {formatTime(voiceRecording.duration)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={deleteVoiceRecording}
+                  className="text-gray-400 hover:text-red-400 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={playVoiceRecording}
+                  disabled={voiceRecording.isPlaying}
+                  className="flex items-center space-x-2 bg-netflix-red hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Play className="h-4 w-4" />
+                  <span>
+                    {voiceRecording.isPlaying ? "Playing..." : "Play"}
+                  </span>
+                </button>
+                <button
+                  onClick={deleteVoiceRecording}
+                  className="text-gray-400 hover:text-red-400 transition-colors text-sm"
+                >
+                  Record again
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex space-x-3">
         <button
@@ -466,7 +726,7 @@ export default function SocialOverlay({
       <p className="text-gray-400">
         Your clip has been shared with {getSelectedCount()}{" "}
         {shareTarget === "friends" ? "friend" : "campfire"}
-        {getSelectedCount() !== 1 ? "s" : ""}
+        {getSelectedCount() !== 1 ? "s" : ""} on FireStories
       </p>
 
       <div className="bg-gray-800 rounded-lg p-4">
@@ -478,10 +738,21 @@ export default function SocialOverlay({
         <p className="text-gray-400 text-sm mt-2">
           Shared with: {getSelectedNames().join(", ")}
         </p>
+        {reactionType === "voice" && voiceRecording.blob && (
+          <p className="text-netflix-red text-sm mt-1">
+            + Voice reaction attached
+          </p>
+        )}
+        {reactionType === "text" && reactionContent && (
+          <p className="text-netflix-red text-sm mt-1">
+            + Text reaction attached
+          </p>
+        )}
       </div>
 
       <div className="text-sm text-gray-400">
-        This clip will appear in FireStories for your selected {shareTarget}
+        Your {shareTarget === "friends" ? "friends" : "campfire members"} can
+        now see this clip in their FireStories chat!
       </div>
     </div>
   );

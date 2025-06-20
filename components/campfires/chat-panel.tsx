@@ -1,6 +1,6 @@
-"use client"
-import { useState, useRef, useEffect } from "react"
-import type React from "react"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import type React from "react";
 
 import {
   X,
@@ -14,108 +14,189 @@ import {
   ChevronLeft,
   ChevronRight,
   StopCircle,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { ChatMessage, ChatParticipant } from "@/lib/types"
-import { MessageSystem } from "@/lib/message-system"
+  ExternalLink,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ChatMessage, ChatParticipant } from "@/lib/types";
+import { MessageSystem } from "@/lib/message-system";
+import { useRouter } from "next/navigation";
 
 interface ChatPanelProps {
-  participant: ChatParticipant | null
-  onClose: () => void
-  currentUser: any
+  participant: ChatParticipant | null;
+  onClose: () => void;
+  currentUser: any;
 }
 
 interface MessageBubbleProps {
-  message: ChatMessage
-  isCurrentUser: boolean
+  message: ChatMessage;
+  isCurrentUser: boolean;
 }
 
-function VoiceMessage({ message, isCurrentUser }: { message: ChatMessage; isCurrentUser: boolean }) {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [audioError, setAudioError] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const simulationRef = useRef<NodeJS.Timeout | null>(null)
+function VoiceMessage({
+  message,
+  isCurrentUser,
+}: {
+  message: ChatMessage;
+  isCurrentUser: boolean;
+}) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [audioError, setAudioError] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const simulationRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+        clearInterval(intervalRef.current);
       }
       if (simulationRef.current) {
-        clearTimeout(simulationRef.current)
+        clearTimeout(simulationRef.current);
       }
       if (audioRef.current) {
-        audioRef.current.pause()
+        audioRef.current.pause();
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const togglePlay = () => {
     if (isPlaying) {
-      setIsPlaying(false)
-      setProgress(0)
+      setIsPlaying(false);
+      setProgress(0);
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+        clearInterval(intervalRef.current);
       }
       if (simulationRef.current) {
-        clearTimeout(simulationRef.current)
+        clearTimeout(simulationRef.current);
       }
       if (audioRef.current) {
-        audioRef.current.pause()
+        audioRef.current.pause();
       }
     } else {
-      setIsPlaying(true)
-      setAudioError(false)
-      simulatePlayback()
+      setIsPlaying(true);
+      setAudioError(false);
+
+      // Try to play actual audio if available
+      if (message.voiceData?.voiceBlob) {
+        playActualAudio();
+      } else {
+        simulatePlayback();
+      }
     }
-  }
+  };
+
+  const playActualAudio = () => {
+    if (message.voiceData?.voiceBlob) {
+      try {
+        const audioUrl = URL.createObjectURL(message.voiceData.voiceBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.onloadedmetadata = () => {
+          const totalDuration = audio.duration * 1000;
+          const startTime = Date.now();
+
+          intervalRef.current = setInterval(() => {
+            if (audio.paused) {
+              setIsPlaying(false);
+              setProgress(0);
+              if (intervalRef.current) clearInterval(intervalRef.current);
+              return;
+            }
+
+            const elapsed = Date.now() - startTime;
+            const progressPercent = Math.min(
+              (elapsed / totalDuration) * 100,
+              100
+            );
+            setProgress(progressPercent);
+
+            if (progressPercent >= 100) {
+              setIsPlaying(false);
+              setProgress(0);
+              if (intervalRef.current) clearInterval(intervalRef.current);
+            }
+          }, 50);
+        };
+
+        audio.onended = () => {
+          setIsPlaying(false);
+          setProgress(0);
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        audio.onerror = () => {
+          setAudioError(true);
+          simulatePlayback(); // Fallback to simulation
+        };
+
+        audio.play();
+        audioRef.current = audio;
+      } catch (error) {
+        console.error("Error playing voice message:", error);
+        simulatePlayback(); // Fallback to simulation
+      }
+    } else {
+      simulatePlayback();
+    }
+  };
 
   const simulatePlayback = () => {
-    const durationParts = message.voiceData?.duration?.split(":") || ["0", "15"]
-    const totalSeconds = Number.parseInt(durationParts[0]) * 60 + Number.parseInt(durationParts[1])
-    const totalMs = totalSeconds * 1000
+    const durationParts = message.voiceData?.duration?.split(":") || [
+      "0",
+      "15",
+    ];
+    const totalSeconds =
+      Number.parseInt(durationParts[0]) * 60 +
+      Number.parseInt(durationParts[1]);
+    const totalMs = totalSeconds * 1000;
 
-    const startTime = Date.now()
+    const startTime = Date.now();
     intervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      const progressPercent = Math.min((elapsed / totalMs) * 100, 100)
-      setProgress(progressPercent)
+      const elapsed = Date.now() - startTime;
+      const progressPercent = Math.min((elapsed / totalMs) * 100, 100);
+      setProgress(progressPercent);
 
       if (progressPercent >= 100) {
-        setIsPlaying(false)
-        setProgress(0)
+        setIsPlaying(false);
+        setProgress(0);
         if (intervalRef.current) {
-          clearInterval(intervalRef.current)
+          clearInterval(intervalRef.current);
         }
       }
-    }, 50)
+    }, 50);
 
     simulationRef.current = setTimeout(() => {
-      setIsPlaying(false)
-      setProgress(0)
+      setIsPlaying(false);
+      setProgress(0);
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+        clearInterval(intervalRef.current);
       }
-    }, totalMs)
-  }
+    }, totalMs);
+  };
 
   return (
     <div
       className={cn(
         "flex items-center space-x-3 p-3 rounded-lg max-w-xs",
-        isCurrentUser ? "bg-[#ff6404] text-black" : "bg-gray-800 text-white",
+        isCurrentUser ? "bg-[#ff6404] text-black" : "bg-gray-800 text-white"
       )}
     >
       <button
         onClick={togglePlay}
         className={cn(
           "p-2 rounded-full transition-colors",
-          isCurrentUser ? "bg-black/20 hover:bg-black/30" : "bg-[#ff6404] hover:bg-orange-500",
+          isCurrentUser
+            ? "bg-black/20 hover:bg-black/30"
+            : "bg-[#ff6404] hover:bg-orange-500"
         )}
       >
-        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+        {isPlaying ? (
+          <Pause className="w-4 h-4" />
+        ) : (
+          <Play className="w-4 h-4" />
+        )}
       </button>
       <div className="flex-1">
         <div className="flex items-center space-x-1 mb-1">
@@ -124,7 +205,7 @@ function VoiceMessage({ message, isCurrentUser }: { message: ChatMessage; isCurr
               key={index}
               className={cn(
                 "w-1 rounded-full transition-all duration-200",
-                isCurrentUser ? "bg-black/40" : "bg-[#ff6404]/60",
+                isCurrentUser ? "bg-black/40" : "bg-[#ff6404]/60"
               )}
               style={{
                 height: `${height * 20 + 4}px`,
@@ -141,12 +222,178 @@ function VoiceMessage({ message, isCurrentUser }: { message: ChatMessage; isCurr
         <p className="text-xs opacity-70">{message.voiceData?.duration}</p>
       </div>
     </div>
-  )
+  );
 }
 
-function ClipMessage({ message, isCurrentUser }: { message: ChatMessage; isCurrentUser: boolean }) {
+function NetflixClipMessage({
+  message,
+  isCurrentUser,
+}: {
+  message: ChatMessage;
+  isCurrentUser: boolean;
+}) {
+  const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handlePlayClip = () => {
+    if (message.clipData?.netflixData) {
+      const { contentId, startTime } = message.clipData.netflixData;
+      const netflixUrl = `/netflix/watch/${contentId}?t=${Math.floor(
+        startTime
+      )}`;
+
+      // Check if user can access Netflix
+      const canAccess = localStorage.getItem("netflix-user");
+
+      if (canAccess) {
+        router.push(netflixUrl);
+      } else {
+        // Prompt user to sign in to Netflix
+        if (
+          confirm(
+            "You need to be signed in to Netflix to watch this clip. Go to Netflix now?"
+          )
+        ) {
+          router.push("/netflix");
+        }
+      }
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   return (
-    <div className={cn("max-w-sm rounded-lg overflow-hidden", isCurrentUser ? "bg-[#ff6404]/10" : "bg-gray-800")}>
+    <div
+      className={cn(
+        "max-w-sm rounded-lg overflow-hidden border-2 transition-all duration-300",
+        isCurrentUser
+          ? "bg-[#ff6404]/10 border-[#ff6404]/30"
+          : "bg-gray-800 border-red-600/50"
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative">
+        <img
+          src={message.clipData?.thumbnail || "/placeholder.svg"}
+          alt={message.clipData?.title}
+          className="w-full h-32 object-cover"
+        />
+
+        {/* Netflix branding */}
+        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+          NETFLIX
+        </div>
+
+        {/* Clip duration */}
+        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+          {message.clipData?.duration}
+        </div>
+
+        {/* Clip timestamp range */}
+        {message.clipData?.netflixData && (
+          <div className="absolute bottom-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+            {formatTime(message.clipData.netflixData.startTime)} -{" "}
+            {formatTime(message.clipData.netflixData.endTime)}
+          </div>
+        )}
+
+        {/* Play overlay */}
+        <div
+          className={cn(
+            "absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 cursor-pointer",
+            isHovered ? "opacity-100" : "opacity-0"
+          )}
+          onClick={handlePlayClip}
+        >
+          <div className="bg-red-600 rounded-full p-3 transform transition-transform duration-300 hover:scale-110">
+            <Play className="w-6 h-6 text-white fill-current" />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-white font-medium text-sm truncate">
+            {message.clipData?.title}
+          </h4>
+          <button
+            onClick={handlePlayClip}
+            className="text-red-400 hover:text-red-300 transition-colors"
+            title="Watch on Netflix"
+          >
+            <ExternalLink className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-[#ff6404] text-xs">{message.clipData?.platform}</p>
+
+        {/* Show reaction if present */}
+        {message.reactionData && (
+          <div className="mt-2 p-2 bg-gray-900/50 rounded text-xs">
+            <div className="flex items-center space-x-1 mb-1">
+              {message.reactionData.type === "voice" ? (
+                <Mic className="w-3 h-3 text-[#ff6404]" />
+              ) : (
+                <span className="text-[#ff6404]">💬</span>
+              )}
+              <span className="text-gray-400">Reaction:</span>
+            </div>
+
+            {message.reactionData.type === "text" ? (
+              <p className="text-white">{message.reactionData.content}</p>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Play voice reaction - you could implement this
+                    console.log(
+                      "Playing voice reaction:",
+                      message.reactionData?.voiceBlob
+                    );
+                  }}
+                  className="text-[#ff6404] hover:text-orange-500 transition-colors"
+                >
+                  <Play className="w-3 h-3" />
+                </button>
+                <span className="text-gray-300">
+                  Voice ({message.reactionData.voiceDuration || "0:00"})
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClipMessage({
+  message,
+  isCurrentUser,
+}: {
+  message: ChatMessage;
+  isCurrentUser: boolean;
+}) {
+  // Check if this is a Netflix clip
+  if (message.clipData?.netflixData) {
+    return (
+      <NetflixClipMessage message={message} isCurrentUser={isCurrentUser} />
+    );
+  }
+
+  // Regular clip message (existing functionality)
+  return (
+    <div
+      className={cn(
+        "max-w-sm rounded-lg overflow-hidden",
+        isCurrentUser ? "bg-[#ff6404]/10" : "bg-gray-800"
+      )}
+    >
       <div className="relative">
         <img
           src={message.clipData?.thumbnail || "/placeholder.svg"}
@@ -163,14 +410,22 @@ function ClipMessage({ message, isCurrentUser }: { message: ChatMessage; isCurre
         </div>
       </div>
       <div className="p-3">
-        <h4 className="text-white font-medium text-sm">{message.clipData?.title}</h4>
+        <h4 className="text-white font-medium text-sm">
+          {message.clipData?.title}
+        </h4>
         <p className="text-[#ff6404] text-xs">{message.clipData?.platform}</p>
       </div>
     </div>
-  )
+  );
 }
 
-function ImageMessage({ message, isCurrentUser }: { message: ChatMessage; isCurrentUser: boolean }) {
+function ImageMessage({
+  message,
+  isCurrentUser,
+}: {
+  message: ChatMessage;
+  isCurrentUser: boolean;
+}) {
   return (
     <div className="max-w-sm rounded-lg overflow-hidden">
       <img
@@ -178,22 +433,33 @@ function ImageMessage({ message, isCurrentUser }: { message: ChatMessage; isCurr
         alt={message.imageData?.caption || "Shared image"}
         className="w-full h-48 object-cover rounded-lg"
       />
-      {message.imageData?.caption && <p className="text-gray-300 text-sm mt-2">{message.imageData.caption}</p>}
+      {message.imageData?.caption && (
+        <p className="text-gray-300 text-sm mt-2">
+          {message.imageData.caption}
+        </p>
+      )}
     </div>
-  )
+  );
 }
 
 function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
   if (message.type === "system") {
     return (
       <div className="flex justify-center my-4">
-        <div className="bg-gray-800 text-gray-400 text-xs px-3 py-1 rounded-full">{message.content}</div>
+        <div className="bg-gray-800 text-gray-400 text-xs px-3 py-1 rounded-full">
+          {message.content}
+        </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className={cn("flex mb-4", isCurrentUser ? "justify-end" : "justify-start")}>
+    <div
+      className={cn(
+        "flex mb-4",
+        isCurrentUser ? "justify-end" : "justify-start"
+      )}
+    >
       {!isCurrentUser && (
         <img
           src={message.avatar || "/placeholder.svg"}
@@ -202,33 +468,45 @@ function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
         />
       )}
       <div className={cn("max-w-xs lg:max-w-md", isCurrentUser && "order-1")}>
-        {!isCurrentUser && <p className="text-[#ff6404] text-xs font-medium mb-1">{message.sender}</p>}
+        {!isCurrentUser && (
+          <p className="text-[#ff6404] text-xs font-medium mb-1">
+            {message.sender}
+          </p>
+        )}
 
         {message.type === "text" && (
           <div
             className={cn(
               "p-3 rounded-lg break-words",
-              isCurrentUser ? "bg-[#ff6404] text-black rounded-br-sm" : "bg-gray-800 text-white rounded-bl-sm",
+              isCurrentUser
+                ? "bg-[#ff6404] text-black rounded-br-sm"
+                : "bg-gray-800 text-white rounded-bl-sm"
             )}
           >
             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
           </div>
         )}
 
-        {message.type === "voice" && <VoiceMessage message={message} isCurrentUser={isCurrentUser} />}
+        {message.type === "voice" && (
+          <VoiceMessage message={message} isCurrentUser={isCurrentUser} />
+        )}
 
         {message.type === "clip" && (
           <div className="space-y-2">
-            {message.content && (
-              <div
-                className={cn(
-                  "p-3 rounded-lg break-words",
-                  isCurrentUser ? "bg-[#ff6404] text-black rounded-br-sm" : "bg-gray-800 text-white rounded-bl-sm",
-                )}
-              >
-                <p className="text-sm">{message.content}</p>
-              </div>
-            )}
+            {message.content &&
+              message.content !==
+                `Shared a clip from ${message.clipData?.title}` && (
+                <div
+                  className={cn(
+                    "p-3 rounded-lg break-words",
+                    isCurrentUser
+                      ? "bg-[#ff6404] text-black rounded-br-sm"
+                      : "bg-gray-800 text-white rounded-bl-sm"
+                  )}
+                >
+                  <p className="text-sm">{message.content}</p>
+                </div>
+              )}
             <ClipMessage message={message} isCurrentUser={isCurrentUser} />
           </div>
         )}
@@ -239,7 +517,9 @@ function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
               <div
                 className={cn(
                   "p-3 rounded-lg break-words",
-                  isCurrentUser ? "bg-[#ff6404] text-black rounded-br-sm" : "bg-gray-800 text-white rounded-bl-sm",
+                  isCurrentUser
+                    ? "bg-[#ff6404] text-black rounded-br-sm"
+                    : "bg-gray-800 text-white rounded-bl-sm"
                 )}
               >
                 <p className="text-sm">{message.content}</p>
@@ -249,7 +529,12 @@ function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
           </div>
         )}
 
-        <p className={cn("text-xs text-gray-400 mt-1", isCurrentUser ? "text-right" : "text-left")}>
+        <p
+          className={cn(
+            "text-xs text-gray-400 mt-1",
+            isCurrentUser ? "text-right" : "text-left"
+          )}
+        >
           {message.timestamp}
         </p>
       </div>
@@ -262,75 +547,84 @@ function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
         />
       )}
     </div>
-  )
+  );
 }
 
-export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps) {
-  const [newMessage, setNewMessage] = useState("")
-  const [isRecording, setIsRecording] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(true)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [recordingTime, setRecordingTime] = useState(0)
-  const [recordingWaveform, setRecordingWaveform] = useState<number[]>([])
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
+export function ChatPanel({
+  participant,
+  onClose,
+  currentUser,
+}: ChatPanelProps) {
+  const [newMessage, setNewMessage] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingWaveform, setRecordingWaveform] = useState<number[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [shouldRender, setShouldRender] = useState(false)
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    setShouldRender(!!participant)
-  }, [participant])
+    setShouldRender(!!participant);
+  }, [participant]);
 
   // Load messages when participant changes
   useEffect(() => {
     if (participant && currentUser) {
-      const loadedMessages = MessageSystem.getMessagesForChat(currentUser.id, participant.id, participant.type)
-      setMessages(loadedMessages)
+      const loadedMessages = MessageSystem.getMessagesForChat(
+        currentUser.id,
+        participant.id,
+        participant.type
+      );
+      setMessages(loadedMessages);
     }
-  }, [participant, currentUser])
+  }, [participant, currentUser]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      const scrollHeight = textareaRef.current.scrollHeight
-      const maxHeight = 100
-      textareaRef.current.style.height = Math.min(scrollHeight, maxHeight) + "px"
+      textareaRef.current.style.height = "auto";
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const maxHeight = 100;
+      textareaRef.current.style.height =
+        Math.min(scrollHeight, maxHeight) + "px";
     }
-  }, [newMessage])
+  }, [newMessage]);
 
   // Clean up recording timer on unmount
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
+        clearInterval(recordingTimerRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const handleSendMessage = () => {
     if ((newMessage.trim() || selectedFile) && participant && currentUser) {
-      let messageType: "text" | "clip" | "image" = "text"
-      let messageData = {}
+      let messageType: "text" | "clip" | "image" = "text";
+      let messageData = {};
 
       if (selectedFile) {
         if (selectedFile.type.startsWith("image/")) {
-          messageType = "image"
+          messageType = "image";
           messageData = {
             imageData: {
               url: URL.createObjectURL(selectedFile),
               caption: newMessage.trim() || undefined,
             },
-          }
+          };
         } else {
-          messageType = "clip"
+          messageType = "clip";
           messageData = {
             clipData: {
               title: selectedFile.name,
@@ -338,7 +632,7 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
               duration: "0:30",
               platform: "Local",
             },
-          }
+          };
         }
       }
 
@@ -346,60 +640,70 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
         id: Date.now(),
         type: messageType,
         sender: currentUser.name,
-        content: newMessage.trim() || (selectedFile ? `Shared ${selectedFile.name}` : ""),
+        content:
+          newMessage.trim() ||
+          (selectedFile ? `Shared ${selectedFile.name}` : ""),
         timestamp: new Date().toLocaleString(),
         avatar: currentUser.avatar,
         ...messageData,
-      }
+      };
 
       // Send message through the message system
       if (participant.type === "friend") {
-        MessageSystem.sendDirectMessage(currentUser.id, participant.id, newMsg)
+        MessageSystem.sendDirectMessage(currentUser.id, participant.id, newMsg);
       } else {
-        MessageSystem.sendCampfireMessage(currentUser.id, participant.id, newMsg)
+        MessageSystem.sendCampfireMessage(
+          currentUser.id,
+          participant.id,
+          newMsg
+        );
       }
 
       // Reload messages to get the updated chat
-      const updatedMessages = MessageSystem.getMessagesForChat(currentUser.id, participant.id, participant.type)
-      setMessages(updatedMessages)
+      const updatedMessages = MessageSystem.getMessagesForChat(
+        currentUser.id,
+        participant.id,
+        participant.type
+      );
+      setMessages(updatedMessages);
 
-      setNewMessage("")
-      setSelectedFile(null)
+      setNewMessage("");
+      setSelectedFile(null);
     }
-  }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+      e.preventDefault();
+      handleSendMessage();
     }
-  }
+  };
 
   const handleFileSelect = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file)
+      setSelectedFile(file);
     }
-  }
+  };
 
   const handleVoiceRecord = () => {
     if (isRecording) {
       // Stop recording
-      setIsRecording(false)
+      setIsRecording(false);
       if (recordingTimerRef.current) {
-        clearInterval(recordingTimerRef.current)
-        recordingTimerRef.current = null
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
       }
 
       if (participant && currentUser) {
         // Create voice message
-        const minutes = Math.floor(recordingTime / 60)
-        const seconds = recordingTime % 60
-        const durationStr = `${minutes}:${seconds.toString().padStart(2, "0")}`
+        const minutes = Math.floor(recordingTime / 60);
+        const seconds = recordingTime % 60;
+        const durationStr = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
         const voiceMsg: ChatMessage = {
           id: Date.now(),
@@ -412,62 +716,74 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
             duration: durationStr,
             waveform: recordingWaveform,
           },
-        }
+        };
 
         // Send voice message
         if (participant.type === "friend") {
-          MessageSystem.sendDirectMessage(currentUser.id, participant.id, voiceMsg)
+          MessageSystem.sendDirectMessage(
+            currentUser.id,
+            participant.id,
+            voiceMsg
+          );
         } else {
-          MessageSystem.sendCampfireMessage(currentUser.id, participant.id, voiceMsg)
+          MessageSystem.sendCampfireMessage(
+            currentUser.id,
+            participant.id,
+            voiceMsg
+          );
         }
 
         // Reload messages
-        const updatedMessages = MessageSystem.getMessagesForChat(currentUser.id, participant.id, participant.type)
-        setMessages(updatedMessages)
+        const updatedMessages = MessageSystem.getMessagesForChat(
+          currentUser.id,
+          participant.id,
+          participant.type
+        );
+        setMessages(updatedMessages);
       }
 
-      setRecordingTime(0)
-      setRecordingWaveform([])
+      setRecordingTime(0);
+      setRecordingWaveform([]);
     } else {
       // Start recording
-      setIsRecording(true)
-      setRecordingWaveform([])
+      setIsRecording(true);
+      setRecordingWaveform([]);
 
       recordingTimerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
+        setRecordingTime((prev) => prev + 1);
         setRecordingWaveform((prev) => {
-          const newValue = Math.random() * 0.7 + 0.2
-          return [...prev, newValue].slice(-15)
-        })
-      }, 1000)
+          const newValue = Math.random() * 0.7 + 0.2;
+          return [...prev, newValue].slice(-15);
+        });
+      }, 1000);
     }
-  }
+  };
 
   const formatRecordingTime = () => {
-    const minutes = Math.floor(recordingTime / 60)
-    const seconds = recordingTime % 60
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(recordingTime / 60);
+    const seconds = recordingTime % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const getParticipantName = () => {
-    if (!participant) return "Unknown"
+    if (!participant) return "Unknown";
     if (participant.type === "friend") {
-      return participant.name || "Unknown Friend"
+      return participant.name || "Unknown Friend";
     } else {
-      return participant.name || "Unknown Campfire"
+      return participant.name || "Unknown Campfire";
     }
-  }
+  };
 
   const getParticipantSubtitle = () => {
-    if (!participant) return ""
+    if (!participant) return "";
     if (participant.type === "friend") {
-      return participant.isOnline ? participant.status || "Online" : "Offline"
+      return participant.isOnline ? participant.status || "Online" : "Offline";
     } else {
-      return `${participant.members?.length || 0} members`
+      return `${participant.members?.length || 0} members`;
     }
-  }
+  };
 
-  const panelWidth = isExpanded ? "w-[600px]" : "w-[450px]"
+  const panelWidth = isExpanded ? "w-[600px]" : "w-[450px]";
 
   return shouldRender ? (
     <>
@@ -485,7 +801,7 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
       <div
         className={cn(
           "fixed left-0 bg-gray-950 border-r border-gray-800 z-[70] flex flex-col animate-slide-in-left transition-all duration-300 shadow-2xl",
-          panelWidth,
+          panelWidth
         )}
         style={{
           top: "64px",
@@ -497,11 +813,17 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
         <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-gray-950 flex-shrink-0">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             <div className="w-10 h-10 bg-gradient-to-br from-[#ff6404] to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-black font-bold text-sm">{(participant?.name || "U").charAt(0)}</span>
+              <span className="text-black font-bold text-sm">
+                {(participant?.name || "U").charAt(0)}
+              </span>
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-white font-semibold truncate">{getParticipantName()}</h3>
-              <p className="text-gray-400 text-xs truncate">{getParticipantSubtitle()}</p>
+              <h3 className="text-white font-semibold truncate">
+                {getParticipantName()}
+              </h3>
+              <p className="text-gray-400 text-xs truncate">
+                {getParticipantSubtitle()}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-2 flex-shrink-0">
@@ -510,7 +832,11 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
               className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
               title={isExpanded ? "Collapse panel" : "Expand panel"}
             >
-              {isExpanded ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+              {isExpanded ? (
+                <ChevronLeft className="w-5 h-5" />
+              ) : (
+                <ChevronRight className="w-5 h-5" />
+              )}
             </button>
             <button
               onClick={onClose}
@@ -524,7 +850,11 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2 chat-scrollbar min-h-0">
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} isCurrentUser={message.sender === currentUser?.name} />
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isCurrentUser={message.sender === currentUser?.name}
+            />
           ))}
           <div ref={messagesEndRef} />
         </div>
@@ -536,7 +866,9 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
               <div className="flex items-center space-x-3 min-w-0 flex-1">
                 {selectedFile.type.startsWith("image/") ? (
                   <img
-                    src={URL.createObjectURL(selectedFile) || "/placeholder.svg"}
+                    src={
+                      URL.createObjectURL(selectedFile) || "/placeholder.svg"
+                    }
                     alt="Preview"
                     className="w-10 h-10 rounded object-cover flex-shrink-0"
                   />
@@ -546,11 +878,18 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-white text-sm font-medium truncate">{selectedFile.name}</p>
-                  <p className="text-gray-400 text-xs">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="text-white text-sm font-medium truncate">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setSelectedFile(null)} className="text-gray-400 hover:text-white flex-shrink-0">
+              <button
+                onClick={() => setSelectedFile(null)}
+                className="text-gray-400 hover:text-white flex-shrink-0"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -563,7 +902,9 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                <p className="text-white">Recording... {formatRecordingTime()}</p>
+                <p className="text-white">
+                  Recording... {formatRecordingTime()}
+                </p>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -624,7 +965,7 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
                   "p-2.5 rounded-lg transition-colors flex-shrink-0",
                   isRecording
                     ? "bg-red-500 text-white animate-pulse"
-                    : "text-gray-400 hover:text-[#ff6404] hover:bg-gray-800",
+                    : "text-gray-400 hover:text-[#ff6404] hover:bg-gray-800"
                 )}
               >
                 <Mic className="w-5 h-5" />
@@ -641,5 +982,5 @@ export function ChatPanel({ participant, onClose, currentUser }: ChatPanelProps)
         )}
       </div>
     </>
-  ) : null
+  ) : null;
 }
