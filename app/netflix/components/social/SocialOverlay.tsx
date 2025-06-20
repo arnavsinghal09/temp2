@@ -359,34 +359,16 @@ export default function SocialOverlay({
     console.log("✅ Voice recording deleted successfully");
   };
 
-  // Update the handleShare function to add more logging for friend sharing
-
   const handleShare = async () => {
     if (getSelectedCount() === 0) return;
 
     console.log("🚀 Starting clip share process...");
-    console.log("📊 Share details:", {
-      shareTarget,
-      selectedFriends,
-      selectedCampfires,
-      selectedCount: getSelectedCount(),
-      userFriends: userFriends.map(f => ({ id: f.id, name: f.name })),
-      userCampfires: userCampfires.map(c => ({ id: c.id, name: c.name })),
-    });
-
     setIsCreating(true);
     setIsSharing(true);
 
     try {
-      const sharedWith = shareTarget === "friends" ? selectedFriends : selectedCampfires;
-
-      console.log("🎯 Final sharing targets:", {
-        shareTarget,
-        sharedWith,
-        targetNames: shareTarget === "friends"
-          ? sharedWith.map(id => userFriends.find(f => f.id === id)?.name || `Friend ${id}`)
-          : sharedWith.map(id => userCampfires.find(c => c.id === id)?.name || `Campfire ${id}`),
-      });
+      const sharedWith =
+        shareTarget === "friends" ? selectedFriends : selectedCampfires;
 
       // Prepare reaction data with proper blob handling
       let reactionData = undefined;
@@ -397,7 +379,11 @@ export default function SocialOverlay({
           content: reactionContent.trim(),
           timestamp: Date.now(),
         };
-      } else if (reactionType === "voice" && voiceRecording.blob && voiceRecording.base64) {
+      } else if (
+        reactionType === "voice" &&
+        voiceRecording.blob &&
+        voiceRecording.base64
+      ) {
         console.log("🎤 Preparing voice reaction:", {
           blobSize: voiceRecording.blob.size,
           blobType: voiceRecording.blob.type,
@@ -438,7 +424,6 @@ export default function SocialOverlay({
         recipientCount: clipData.sharedWith.length,
         hasReaction: !!clipData.reaction,
         reactionType: clipData.reaction?.type,
-        fromUser: clipData.sharedBy.name,
       });
 
       const clipId = await createClip(clipData);
@@ -548,10 +533,11 @@ export default function SocialOverlay({
             <button
               key={duration}
               onClick={() => setClipDuration(duration)}
-              className={`p-3 rounded-lg border-2 transition-colors ${clipDuration === duration
+              className={`p-3 rounded-lg border-2 transition-colors ${
+                clipDuration === duration
                   ? "border-netflix-red bg-netflix-red/10 text-white"
                   : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
-                }`}
+              }`}
             >
               {duration} seconds
             </button>
@@ -607,10 +593,11 @@ export default function SocialOverlay({
             setReactionType("text");
             deleteVoiceRecording(); // Clear voice recording when switching to text
           }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${reactionType === "text"
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            reactionType === "text"
               ? "bg-netflix-red text-white"
               : "text-gray-400 hover:text-white"
-            }`}
+          }`}
         >
           <MessageSquare className="h-4 w-4" />
           <span>Text</span>
@@ -620,10 +607,11 @@ export default function SocialOverlay({
             setReactionType("voice");
             setReactionContent(""); // Clear text when switching to voice
           }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${reactionType === "voice"
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            reactionType === "voice"
               ? "bg-netflix-red text-white"
               : "text-gray-400 hover:text-white"
-            }`}
+          }`}
         >
           <Mic className="h-4 w-4" />
           <span>Voice</span>
@@ -696,20 +684,22 @@ export default function SocialOverlay({
       <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
         <button
           onClick={() => setShareTarget("friends")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${shareTarget === "friends"
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            shareTarget === "friends"
               ? "bg-netflix-red text-white"
               : "text-gray-400 hover:text-white"
-            }`}
+          }`}
         >
           <User className="h-4 w-4" />
           <span>Friends ({userFriends.length})</span>
         </button>
         <button
           onClick={() => setShareTarget("campfires")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${shareTarget === "campfires"
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            shareTarget === "campfires"
               ? "bg-netflix-red text-white"
               : "text-gray-400 hover:text-white"
-            }`}
+          }`}
         >
           <Users className="h-4 w-4" />
           <span>Campfires ({userCampfires.length})</span>
@@ -752,8 +742,9 @@ export default function SocialOverlay({
                   <p className="text-white font-medium">{friend.name}</p>
                   <div className="flex items-center space-x-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${friend.isOnline ? "bg-green-500" : "bg-gray-500"
-                        }`}
+                      className={`w-2 h-2 rounded-full ${
+                        friend.isOnline ? "bg-green-500" : "bg-gray-500"
+                      }`}
                     />
                     <p className="text-gray-400 text-sm">{friend.status}</p>
                   </div>
@@ -906,12 +897,13 @@ export default function SocialOverlay({
                 return (
                   <div
                     key={stepName}
-                    className={`w-2 h-2 rounded-full transition-colors ${step === stepName
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      step === stepName
                         ? "bg-netflix-red"
                         : currentStepIndex > stepIndex
-                          ? "bg-gray-500"
-                          : "bg-gray-700"
-                      }`}
+                        ? "bg-gray-500"
+                        : "bg-gray-700"
+                    }`}
                   />
                 );
               })}
