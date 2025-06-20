@@ -140,9 +140,19 @@ export interface ChatMessage {
       endTime: number;
       clipId: string;
       sharedFrom: "Netflix";
-      watchUrl?: string; // Optional direct watch URL
+      watchUrl?: string;
+    };
+    // Enhanced Prime Video specific fields
+    primeData?: {
+      contentId: string;
+      startTime: number;
+      endTime: number;
+      clipId: string;
+      sharedFrom: "Prime Video";
+      originalTitle?: string;
     };
   };
+  
   voiceData?: {
     duration: string;
     waveform: number[];

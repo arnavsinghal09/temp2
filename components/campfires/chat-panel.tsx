@@ -235,25 +235,90 @@ function NetflixClipMessage({
   const [isPlayingReaction, setIsPlayingReaction] = useState(false);
 
   const handlePlayClip = () => {
-    if (message.clipData?.netflixData) {
-      const { contentId, startTime } = message.clipData.netflixData;
-      const netflixUrl = `/netflix/watch/${contentId}?t=${Math.floor(
-        startTime
-      )}`;
+    if (message.clipData?.primeData) {
+      const { contentId, startTime } = message.clipData.primeData;
 
-      const canAccess = localStorage.getItem("netflix-user");
+      // Construct the proper Prime Video URL with time parameter
+      const primeUrl = `/prime/watch/${contentId}?t=${Math.floor(startTime)}`;
+
+      const canAccess = localStorage.getItem("prime-user");
 
       if (canAccess) {
-        router.push(netflixUrl);
+        // Add logging for debugging
+        console.log("Navigating to Prime Video clip:", {
+          contentId,
+          startTime,
+          url: primeUrl,
+        });
+        router.push(primeUrl);
       } else {
         if (
           confirm(
-            "You need to be signed in to Netflix to watch this clip. Go to Netflix now?"
+            "You need to be signed in to Prime Video to watch this clip. Go to Prime Video now?"
           )
         ) {
-          router.push("/netflix");
+          router.push("/prime");
         }
       }
+    }
+  };
+
+  const reconstructBlobFromBase64 = async (
+    base64Data: string
+  ): Promise<Blob | null> => {
+    try {
+      console.log("🔄 Reconstructing blob from base64 in chat panel:", {
+        dataLength: base64Data.length,
+        hasDataPrefix: base64Data.startsWith("data:"),
+        chatContext: "Friend chat panel reconstruction", // Add this line
+        base64Preview: base64Data.substring(0, 100) + "...", // Add this line
+      });
+
+      if (!base64Data || typeof base64Data !== "string") {
+        console.error("Invalid base64 data in chat panel");
+        return null;
+      }
+      if (!base64Data || typeof base64Data !== "string") {
+        return null;
+      }
+
+      let base64String = base64Data;
+      let mimeType = "audio/webm";
+
+      if (base64Data.startsWith("data:")) {
+        const parts = base64Data.split(",");
+        if (parts.length === 2) {
+          const header = parts[0];
+          base64String = parts[1];
+
+          const mimeMatch = header.match(/data:([^;]+)/);
+          if (mimeMatch) {
+            mimeType = mimeMatch[1];
+          }
+        }
+      }
+
+      const byteCharacters = atob(base64String);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const validTypes = [
+        "audio/webm",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/ogg",
+        "audio/mp4",
+      ];
+      const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
+      const blob = new Blob([byteArray], { type: finalType });
+
+      return blob;
+    } catch (error) {
+      return null;
     }
   };
 
@@ -346,65 +411,6 @@ function NetflixClipMessage({
     } catch (error) {
       setIsPlayingReaction(false);
       alert("An unexpected error occurred while playing the voice reaction.");
-    }
-  };
-
-  const reconstructBlobFromBase64 = async (
-    base64Data: string
-  ): Promise<Blob | null> => {
-    try {
-    console.log("🔄 Reconstructing blob from base64 in chat panel:", {
-      dataLength: base64Data.length,
-      hasDataPrefix: base64Data.startsWith("data:"),
-      chatContext: "Friend chat panel reconstruction", // Add this line
-      base64Preview: base64Data.substring(0, 100) + "...", // Add this line
-    });
-
-    if (!base64Data || typeof base64Data !== "string") {
-      console.error("❌ Invalid base64 data in chat panel");
-      return null;
-    }
-      if (!base64Data || typeof base64Data !== "string") {
-        return null;
-      }
-
-      let base64String = base64Data;
-      let mimeType = "audio/webm";
-
-      if (base64Data.startsWith("data:")) {
-        const parts = base64Data.split(",");
-        if (parts.length === 2) {
-          const header = parts[0];
-          base64String = parts[1];
-
-          const mimeMatch = header.match(/data:([^;]+)/);
-          if (mimeMatch) {
-            mimeType = mimeMatch[1];
-          }
-        }
-      }
-
-      const byteCharacters = atob(base64String);
-      const byteNumbers = new Array(byteCharacters.length);
-
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-
-      const byteArray = new Uint8Array(byteNumbers);
-      const validTypes = [
-        "audio/webm",
-        "audio/mpeg",
-        "audio/mp3",
-        "audio/ogg",
-        "audio/mp4",
-      ];
-      const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
-      const blob = new Blob([byteArray], { type: finalType });
-
-      return blob;
-    } catch (error) {
-      return null;
     }
   };
 
@@ -579,6 +585,275 @@ function NetflixClipMessage({
   );
 }
 
+function PrimeClipMessage({
+  message,
+  isCurrentUser,
+}: {
+  message: ChatMessage;
+  isCurrentUser: boolean;
+}) {
+  const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPlayingReaction, setIsPlayingReaction] = useState(false);
+
+  const reconstructBlobFromBase64 = async (
+    base64Data: string
+  ): Promise<Blob | null> => {
+    try {
+      console.log("🔄 Reconstructing blob from base64 in chat panel:", {
+        dataLength: base64Data.length,
+        hasDataPrefix: base64Data.startsWith("data:"),
+        chatContext: "Friend chat panel reconstruction", // Add this line
+        base64Preview: base64Data.substring(0, 100) + "...", // Add this line
+      });
+
+      if (!base64Data || typeof base64Data !== "string") {
+        console.error("❌ Invalid base64 data in chat panel");
+        return null;
+      }
+      if (!base64Data || typeof base64Data !== "string") {
+        return null;
+      }
+
+      let base64String = base64Data;
+      let mimeType = "audio/webm";
+
+      if (base64Data.startsWith("data:")) {
+        const parts = base64Data.split(",");
+        if (parts.length === 2) {
+          const header = parts[0];
+          base64String = parts[1];
+
+          const mimeMatch = header.match(/data:([^;]+)/);
+          if (mimeMatch) {
+            mimeType = mimeMatch[1];
+          }
+        }
+      }
+
+      const byteCharacters = atob(base64String);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const validTypes = [
+        "audio/webm",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/ogg",
+        "audio/mp4",
+      ];
+      const finalType = validTypes.includes(mimeType) ? mimeType : "audio/webm";
+      const blob = new Blob([byteArray], { type: finalType });
+
+      return blob;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const handlePlayClip = () => {
+    if (message.clipData?.primeData) {
+      const { contentId, startTime } = message.clipData.primeData;
+      const primeUrl = `/prime/watch/${contentId}?t=${Math.floor(startTime)}`;
+
+      const canAccess = localStorage.getItem("prime-user");
+
+      if (canAccess) {
+        router.push(primeUrl);
+      } else {
+        if (
+          confirm(
+            "You need to be signed in to Prime Video to watch this clip. Go to Prime Video now?"
+          )
+        ) {
+          router.push("/prime");
+        }
+      }
+    }
+  };
+
+  const handlePlayVoiceReaction = async () => {
+    if (isPlayingReaction) return;
+
+    try {
+      let audioBlob = message.reactionData?.voiceBlob;
+
+      if (!audioBlob && message.reactionData?.voiceBase64) {
+        try {
+          const reconstructed = await reconstructBlobFromBase64(
+            message.reactionData.voiceBase64
+          );
+          audioBlob = reconstructed === null ? undefined : reconstructed;
+        } catch (conversionError) {
+          // Handle silently
+        }
+      }
+
+      if (audioBlob && audioBlob instanceof Blob && audioBlob.size > 0) {
+        setIsPlayingReaction(true);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.onended = () => {
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        audio.onerror = () => {
+          setIsPlayingReaction(false);
+          URL.revokeObjectURL(audioUrl);
+          alert("Failed to play voice reaction.");
+        };
+
+        await audio.play();
+      } else {
+        alert("Voice reaction could not be played.");
+      }
+    } catch (error) {
+      setIsPlayingReaction(false);
+      alert("An error occurred while playing the voice reaction.");
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div
+      className={cn(
+        "max-w-sm rounded-lg overflow-hidden border-2 transition-all duration-300",
+        isCurrentUser
+          ? "bg-[#ff6404]/10 border-[#ff6404]/30"
+          : "bg-gray-800 border-blue-600/50"
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative">
+        <img
+          src={message.clipData?.thumbnail || "/placeholder.svg"}
+          alt={message.clipData?.title}
+          className="w-full h-32 object-cover"
+        />
+
+        <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+          PRIME VIDEO
+        </div>
+
+        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+          {message.clipData?.duration}
+        </div>
+
+        {message.clipData?.primeData && (
+          <div className="absolute bottom-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+            {formatTime(message.clipData.primeData.startTime)} -{" "}
+            {formatTime(message.clipData.primeData.endTime)}
+          </div>
+        )}
+
+        <div
+          className={cn(
+            "absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 cursor-pointer",
+            isHovered ? "opacity-100" : "opacity-0"
+          )}
+          onClick={handlePlayClip}
+        >
+          <div className="bg-blue-600 rounded-full p-3 transform transition-transform duration-300 hover:scale-110">
+            <Play className="w-6 h-6 text-white fill-current" />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-white font-medium text-sm truncate">
+            {message.clipData?.title}
+          </h4>
+          <button
+            onClick={handlePlayClip}
+            className="text-blue-400 hover:text-blue-300 transition-colors"
+            title="Watch on Prime Video"
+          >
+            <ExternalLink className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-[#ff6404] text-xs">{message.clipData?.platform}</p>
+
+        {message.reactionData && (
+          <div className="mt-3 p-3 bg-gray-900/50 rounded-lg text-xs border border-gray-700">
+            <div className="flex items-center space-x-2 mb-2">
+              {message.reactionData.type === "voice" ? (
+                <Mic className="w-3 h-3 text-[#ff6404]" />
+              ) : (
+                <span className="text-[#ff6404]">💬</span>
+              )}
+              <span className="text-gray-400 font-medium">Reaction:</span>
+            </div>
+
+            {message.reactionData.type === "text" ? (
+              <p className="text-white leading-relaxed">
+                {message.reactionData.content}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayVoiceReaction();
+                      }}
+                      disabled={isPlayingReaction}
+                      className={cn(
+                        "flex items-center space-x-1 px-2 py-1 rounded transition-colors",
+                        isPlayingReaction
+                          ? "bg-[#ff6404]/20 text-[#ff6404] cursor-not-allowed"
+                          : "bg-[#ff6404]/10 text-[#ff6404] hover:bg-[#ff6404]/20"
+                      )}
+                    >
+                      {isPlayingReaction ? (
+                        <Pause className="w-3 h-3" />
+                      ) : (
+                        <Play className="w-3 h-3" />
+                      )}
+                      <span className="text-xs">
+                        {isPlayingReaction ? "Playing..." : "Play"}
+                      </span>
+                    </button>
+                    <span className="text-gray-300 text-xs">
+                      ({message.reactionData.voiceDuration || "0:00"})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center space-x-1 py-2">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        "w-1 rounded-full transition-all duration-200",
+                        isPlayingReaction ? "bg-[#ff6404]" : "bg-gray-500"
+                      )}
+                      style={{ height: `${Math.sin(index * 0.5) * 8 + 12}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ClipMessage({
   message,
   isCurrentUser,
@@ -590,6 +865,10 @@ function ClipMessage({
     return (
       <NetflixClipMessage message={message} isCurrentUser={isCurrentUser} />
     );
+  }
+
+  if (message.clipData?.primeData) {
+    return <PrimeClipMessage message={message} isCurrentUser={isCurrentUser} />;
   }
 
   return (
@@ -700,7 +979,7 @@ function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
           <div className="space-y-2">
             {message.content &&
               message.content !==
-              `Shared a clip from ${message.clipData?.title}` && (
+                `Shared a clip from ${message.clipData?.title}` && (
                 <div
                   className={cn(
                     "p-3 rounded-lg break-words",

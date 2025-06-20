@@ -1,88 +1,124 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useRouter } from "next/navigation"
-import { Play, Pause, Volume2, Maximize, SkipBack, SkipForward, Settings, Subtitles, X } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
-import ClipButton from "../../components/watch/ClipButton"
-import { getContentById } from "../../lib/data/mockData"
+import { useRouter } from "next/navigation";
+import {
+  Play,
+  Pause,
+  Volume2,
+  Maximize,
+  SkipBack,
+  SkipForward,
+  Settings,
+  Subtitles,
+  X,
+} from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import ClipButton from "../../components/watch/ClipButton";
+import { getContentById } from "../../lib/data/mockData";
 
 interface WatchPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default function WatchPage({ params }: WatchPageProps) {
-  const router = useRouter()
-  const { id } = params
-  const [isPlaying, setIsPlaying] = useState(true)
-  const [showControls, setShowControls] = useState(true)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const router = useRouter();
+  const { id } = params;
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const content = getContentById(id)
+  const content = getContentById(id);
 
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
+    const urlParams = new URLSearchParams(window.location.search);
+    const timeParam = urlParams.get("t");
+    if (timeParam) {
+      const time = parseFloat(timeParam);
+      if (!isNaN(time) && time >= 0) {
+        setStartTime(time);
+      }
+    }
+  }, []);
 
-    const updateTime = () => setCurrentTime(video.currentTime)
-    const updateDuration = () => setDuration(video.duration)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
 
-    video.addEventListener("timeupdate", updateTime)
-    video.addEventListener("loadedmetadata", updateDuration)
+    const updateTime = () => setCurrentTime(video.currentTime);
+    const updateDuration = () => {
+      setDuration(video.duration);
+      // Seek to start time when duration is loaded
+      if (startTime !== null && video.duration > 0) {
+        video.currentTime = Math.min(startTime, video.duration);
+        setCurrentTime(startTime);
+      }
+    };
+
+    video.addEventListener("timeupdate", updateTime);
+    video.addEventListener("loadedmetadata", updateDuration);
+    video.addEventListener("canplay", () => {
+      if (startTime !== null) {
+        video.currentTime = Math.min(startTime, video.duration || 0);
+        setCurrentTime(startTime);
+      }
+    });
 
     return () => {
-      video.removeEventListener("timeupdate", updateTime)
-      video.removeEventListener("loadedmetadata", updateDuration)
-    }
-  }, [])
+      video.removeEventListener("timeupdate", updateTime);
+      video.removeEventListener("loadedmetadata", updateDuration);
+    };
+  }, [startTime]);
+
 
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
-        videoRef.current.pause()
+        videoRef.current.pause();
       } else {
-        videoRef.current.play()
+        videoRef.current.play();
       }
-      setIsPlaying(!isPlaying)
+      setIsPlaying(!isPlaying);
     }
-  }
+  };
 
   const handleMouseMove = () => {
-    setShowControls(true)
+    setShowControls(true);
     if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current)
+      clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = setTimeout(() => {
       if (isPlaying) {
-        setShowControls(false)
+        setShowControls(false);
       }
-    }, 3000)
-  }
+    }, 3000);
+  };
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current
+    const video = videoRef.current;
     if (video) {
-      const newTime = (Number.parseFloat(e.target.value) / 100) * duration
-      video.currentTime = newTime
-      setCurrentTime(newTime)
+      const newTime = (Number.parseFloat(e.target.value) / 100) * duration;
+      video.currentTime = newTime;
+      setCurrentTime(newTime);
     }
-  }
+  };
 
   const handleBack = () => {
-    router.back()
-  }
+    router.back();
+  };
 
   return (
     <div className="fixed inset-0 bg-black z-50">

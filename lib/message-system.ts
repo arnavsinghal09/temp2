@@ -8,6 +8,18 @@ export interface MessageRoute {
   timestamp: string;
 }
 
+// Add this interface if not already present
+export interface PrimeClipData {
+  id: string;
+  contentId: string;
+  contentTitle: string;
+  contentThumbnail: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+}
+
+
 export interface PendingMessage {
   id: number;
   route: MessageRoute;
@@ -66,12 +78,24 @@ export class MessageSystem {
   ): void {
     try {
       // Check sender's chat
-      const senderMessages = this.getMessagesForChat(fromUserId, toUserId, "friend");
-      const senderHasMessage = senderMessages.some(msg => msg.id === messageId);
+      const senderMessages = this.getMessagesForChat(
+        fromUserId,
+        toUserId,
+        "friend"
+      );
+      const senderHasMessage = senderMessages.some(
+        (msg) => msg.id === messageId
+      );
 
       // Check receiver's chat
-      const receiverMessages = this.getMessagesForChat(toUserId, fromUserId, "friend");
-      const receiverHasMessage = receiverMessages.some(msg => msg.id === messageId);
+      const receiverMessages = this.getMessagesForChat(
+        toUserId,
+        fromUserId,
+        "friend"
+      );
+      const receiverHasMessage = receiverMessages.some(
+        (msg) => msg.id === messageId
+      );
 
       if (!senderHasMessage || !receiverHasMessage) {
         throw new Error("Message storage verification failed");
@@ -208,6 +232,97 @@ export class MessageSystem {
     }
   }
 
+  static sendPrimeClipMessage(
+    fromUserId: number,
+    friendIds: number[],
+    campfireIds: number[],
+    clipData: any,
+    reaction?: {
+      type: "text" | "voice";
+      content: string;
+      timestamp: number;
+      voiceDuration?: string;
+      voiceBlob?: Blob;
+      voiceBase64?: string;
+    }
+  ): void {
+    // Handle voice blob reconstruction
+    let processedReaction = reaction;
+    if (reaction && reaction.type === "voice") {
+      if (reaction.voiceBase64) {
+        try {
+          processedReaction = {
+            ...reaction,
+            voiceBlob: reaction.voiceBlob,
+            voiceBase64: reaction.voiceBase64,
+          };
+        } catch (error) {
+          processedReaction = {
+            ...reaction,
+            voiceBlob: undefined,
+          };
+        }
+      }
+    }
+
+    const message: ChatMessage = {
+      id: Date.now() + Math.random(),
+      type: "clip",
+      sender: this.getUserName(fromUserId),
+      content:
+        processedReaction?.content ||
+        `Shared a clip from ${clipData.contentTitle}`,
+      timestamp: new Date().toLocaleString(),
+      avatar: this.getUserAvatar(fromUserId),
+      clipData: {
+        title: clipData.contentTitle,
+        thumbnail:
+          clipData.contentThumbnail || "/placeholder.svg?height=200&width=300",
+        duration: this.formatDuration(clipData.duration),
+        platform: "Prime Video",
+        primeData: {
+          contentId: clipData.contentId,
+          startTime: clipData.startTime,
+          endTime: clipData.endTime,
+          clipId: clipData.id,
+          sharedFrom: "Prime Video",
+          originalTitle: clipData.originalTitle || clipData.contentTitle,
+        },
+      },
+      reactionData: processedReaction
+        ? {
+            type: processedReaction.type,
+            content: processedReaction.content,
+            voiceBlob: processedReaction.voiceBlob,
+            voiceDuration: processedReaction.voiceDuration,
+            voiceBase64: processedReaction.voiceBase64,
+            timestamp: processedReaction.timestamp,
+          }
+        : undefined,
+    };
+
+    // Process the message
+    const processedMessage = this.processPrimeClipMessage(message);
+
+    // Send to friends
+    friendIds.forEach((friendId) => {
+      try {
+        this.sendDirectMessage(fromUserId, friendId, processedMessage);
+      } catch (error) {
+        console.error(`Failed to send to friend ${friendId}:`, error);
+      }
+    });
+
+    // Send to campfires
+    campfireIds.forEach((campfireId) => {
+      try {
+        this.sendCampfireMessage(fromUserId, campfireId, processedMessage);
+      } catch (error) {
+        console.error(`Failed to send to campfire ${campfireId}:`, error);
+      }
+    });
+  }
+
   // Enhanced base64 to blob conversion
   private static base64ToBlob(base64Data: string): Blob {
     try {
@@ -270,70 +385,68 @@ export class MessageSystem {
       const messages: ChatMessage[] = JSON.parse(stored);
 
       // Reconstruct voice blobs from base64 data
-      const processedMessages: ChatMessage[] = messages.map(
-        (message) => {
-          if (
-            message.reactionData?.voiceBase64 &&
-            message.reactionData.type === "voice"
-          ) {
-            try {
-              const blob = this.base64ToBlob(message.reactionData.voiceBase64);
-              const url = URL.createObjectURL(blob);
+      const processedMessages: ChatMessage[] = messages.map((message) => {
+        if (
+          message.reactionData?.voiceBase64 &&
+          message.reactionData.type === "voice"
+        ) {
+          try {
+            const blob = this.base64ToBlob(message.reactionData.voiceBase64);
+            const url = URL.createObjectURL(blob);
 
-              return {
-                ...message,
-                reactionData: {
-                  ...message.reactionData,
-                  voiceBlob: blob,
-                },
-                voiceData: message.voiceData
-                  ? {
-                      ...message.voiceData,
-                      voiceBlob: blob,
-                      audioUrl: url,
-                      duration: message.voiceData.duration || "0:00",
-                    }
-                  : {
-                      duration: "0:00",
-                      waveform: this.generateWaveform(),
-                      voiceBlob: blob,
-                      audioUrl: url,
-                    },
-              };
-            } catch (error) {
-              return message;
-            }
+            return {
+              ...message,
+              reactionData: {
+                ...message.reactionData,
+                voiceBlob: blob,
+              },
+              voiceData: message.voiceData
+                ? {
+                    ...message.voiceData,
+                    voiceBlob: blob,
+                    audioUrl: url,
+                    duration: message.voiceData.duration || "0:00",
+                  }
+                : {
+                    duration: "0:00",
+                    waveform: this.generateWaveform(),
+                    voiceBlob: blob,
+                    audioUrl: url,
+                  },
+            };
+          } catch (error) {
+            return message;
           }
-
-          // Also handle legacy voiceData with base64
-          if (
-            message.voiceData &&
-            !message.voiceData.voiceBlob &&
-            (message as any).voiceData?.voiceBase64
-          ) {
-            try {
-              const blob = this.base64ToBlob(
-                (message as any).voiceData.voiceBase64
-              );
-              const url = URL.createObjectURL(blob);
-
-              return {
-                ...message,
-                voiceData: {
-                  ...message.voiceData,
-                  voiceBlob: blob,
-                  audioUrl: url,
-                  duration: message.voiceData.duration || "0:00",
-                },
-              };
-            } catch (error) {
-              return message;
-            }
-          }
-
-          return message;
         }
-      );
+
+        // Also handle legacy voiceData with base64
+        if (
+          message.voiceData &&
+          !message.voiceData.voiceBlob &&
+          (message as any).voiceData?.voiceBase64
+        ) {
+          try {
+            const blob = this.base64ToBlob(
+              (message as any).voiceData.voiceBase64
+            );
+            const url = URL.createObjectURL(blob);
+
+            return {
+              ...message,
+              voiceData: {
+                ...message.voiceData,
+                voiceBlob: blob,
+                audioUrl: url,
+                duration: message.voiceData.duration || "0:00",
+              },
+            };
+          } catch (error) {
+            return message;
+          }
+        }
+
+        return message;
+      });
 
       return processedMessages;
     } catch (error) {
@@ -359,7 +472,28 @@ export class MessageSystem {
         endTime === undefined ||
         !clipId
       ) {
-        // Handle validation warning silently or throw if needed
+        console.warn("Netflix clip data validation warning");
+      }
+    }
+
+    return message;
+  }
+
+  private static processPrimeClipMessage(message: ChatMessage): ChatMessage {
+    if (message.type === "clip" && message.clipData?.primeData) {
+      if (!message.clipData.primeData.sharedFrom) {
+        message.clipData.primeData.sharedFrom = "Prime Video";
+      }
+
+      const { contentId, startTime, endTime, clipId } =
+        message.clipData.primeData;
+      if (
+        !contentId ||
+        startTime === undefined ||
+        endTime === undefined ||
+        !clipId
+      ) {
+        console.warn("Prime Video clip data validation warning");
       }
     }
 
@@ -401,7 +535,11 @@ export class MessageSystem {
 
       // Get existing messages WITHOUT using the enhanced getMessagesForChat
       // to avoid circular dependency during message addition
-      const existingMessages = this.getRawMessagesForChat(userId, participantId, type);
+      const existingMessages = this.getRawMessagesForChat(
+        userId,
+        participantId,
+        type
+      );
 
       // Check if message already exists (prevent duplicates)
       const messageExists = existingMessages.some(
@@ -419,15 +557,24 @@ export class MessageSystem {
           : message;
 
       const updatedMessages = [...existingMessages, processedMessage];
-      
+
       // Use custom serializer to handle special objects
-      const serializedMessages = JSON.stringify(updatedMessages, this.jsonReplacer);
+      const serializedMessages = JSON.stringify(
+        updatedMessages,
+        this.jsonReplacer
+      );
       localStorage.setItem(key, serializedMessages);
 
       // Verify the message was actually stored
-      const verificationMessages = this.getRawMessagesForChat(userId, participantId, type);
-      const messageWasStored = verificationMessages.some(msg => msg.id === message.id);
-      
+      const verificationMessages = this.getRawMessagesForChat(
+        userId,
+        participantId,
+        type
+      );
+      const messageWasStored = verificationMessages.some(
+        (msg) => msg.id === message.id
+      );
+
       if (!messageWasStored) {
         throw new Error("Message storage verification failed");
       }

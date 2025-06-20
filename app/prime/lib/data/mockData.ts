@@ -276,21 +276,47 @@ export const topTVShows: ContentItem[] = [
 ]
 
 export const getContentById = (id: string): ContentItem | FeaturedContent => {
-  const allContent = [...recentlyAdded, ...popularMovies, ...topTVShows, ...featuredOriginals, featuredContent]
-  return (
-    allContent.find((item) => item.id === id) || {
-      id,
-      title: "Sample Content",
-      description:
-        "This is a sample description for the content. In a real application, this would be fetched from a database or API with detailed plot information and cast details.",
-      thumbnail: "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/Jack+Ryan.png",
+  // Create a comprehensive content list
+  const allContent = [
+    ...recentlyAdded,
+    ...popularMovies,
+    ...topTVShows,
+    ...featuredOriginals,
+    // Add the featured content to the searchable list
+    {
+      id: "featured-1",
+      title: "THE TRAITORS",
+      thumbnail:
+        "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
       year: 2024,
-      duration: "1h 30m",
-      genre: "Drama, Thriller",
-      rating: "TV-MA",
-    }
-  )
-}
+      duration: "45m",
+      genre: "Reality TV",
+      isPrime: true,
+      rating: "8.2",
+    },
+  ];
+
+  const foundContent = allContent.find((item) => item.id === id);
+
+  if (foundContent) {
+    return foundContent;
+  }
+
+  // Return a default content item if not found
+  return {
+    id,
+    title: "Sample Content",
+    description:
+      "This is a sample description for the content. In a real application, this would be fetched from a database or API with detailed plot information and cast details.",
+    thumbnail:
+      "https://firestories.s3.ap-south-1.amazonaws.com/prime-images/the+traitors.jpg",
+    year: 2024,
+    duration: "1h 30m",
+    genre: "Drama, Thriller",
+    rating: "TV-MA",
+  };
+};
+
 
 export const recommendedContent: ContentItem[] = [
   {

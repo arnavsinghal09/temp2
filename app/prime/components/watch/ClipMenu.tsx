@@ -18,7 +18,9 @@ import {
   PrimeUser,
   PrimeCampfire,
   ClipMenuStep,
+  ClipShareData
 } from "../../lib/types/clip";
+
 import { ClipUserDataService } from "../../lib/services/clip-user-data";
 import EmojiPicker from "../ui/EmojiPicker";
 import VoiceRecorder from "../ui/VoiceRecorder";
@@ -162,30 +164,42 @@ export default function ClipMenu({
 
     setIsSharing(true);
 
-    // Simulate sharing process
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Import the Prime clip integration service
+      const { PrimeClipIntegration } = await import(
+        "../../lib/services/clip-integration"
+      );
 
-    // Here you would integrate with FireStories messaging system
-    console.log("Prime Clip Shared:", {
-      clipOptions,
-      contentTitle,
-      selectedFriends: selectedUsers.map((u) => ({ id: u.id, name: u.name })),
-      selectedCampfires: selectedCampfires.map((c) => ({
-        id: c.id,
-        name: c.name,
-      })),
-      message,
-      hasVoiceNote: !!voiceNote,
-    });
+      // Prepare clip share data
+      const clipShareData: ClipShareData = {
+        clipOptions,
+        selectedUsers,
+        selectedCampfires,
+        message,
+        voiceNote: voiceNote ?? undefined,
+      };
 
-    setIsSharing(false);
-    setCurrentStep("success");
+      // Share to FireStories
+      const success = await PrimeClipIntegration.shareClipToFireStories(
+        clipShareData
+      );
 
-    // Auto close after success
-    setTimeout(() => {
-      onClose();
-    }, 3000);
+      if (success) {
+        setCurrentStep("success");
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+      } else {
+        throw new Error("Failed to share clip");
+      }
+    } catch (error) {
+      console.error("Error sharing clip:", error);
+      alert("Failed to share clip. Please try again.");
+    } finally {
+      setIsSharing(false);
+    }
   };
+  
 
   const handleProceedToSharing = () => {
     setCurrentStep("sharing");
