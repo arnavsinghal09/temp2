@@ -359,17 +359,35 @@ export default function SocialOverlay({
     console.log("✅ Voice recording deleted successfully");
   };
 
-  const handleShare = async () => {
-    if (getSelectedCount() === 0) return;
+  // REPLACE the entire handleShare function with this ENHANCED version:
 
-    console.log("🚀 Starting clip share process...");
+  const handleShare = async () => {
+    // Check if we have any selections
+    const friendCount = selectedFriends.length;
+    const campfireCount = selectedCampfires.length;
+    const totalSelected = friendCount + campfireCount;
+
+    if (totalSelected === 0) {
+      console.log("⚠️ No recipients selected");
+      return;
+    }
+
+    console.log("🚀 Starting enhanced clip share process...");
+    console.log("📊 Enhanced share details:", {
+      selectedFriends,
+      selectedCampfires,
+      friendCount,
+      campfireCount,
+      totalSelected,
+      shareTarget, // This will show the UI state, but we'll handle both types
+      userFriends: userFriends.map(f => ({ id: f.id, name: f.name })),
+      userCampfires: userCampfires.map(c => ({ id: c.id, name: c.name })),
+    });
+
     setIsCreating(true);
     setIsSharing(true);
 
     try {
-      const sharedWith =
-        shareTarget === "friends" ? selectedFriends : selectedCampfires;
-
       // Prepare reaction data with proper blob handling
       let reactionData = undefined;
       if (reactionType === "text" && reactionContent.trim()) {
@@ -379,11 +397,7 @@ export default function SocialOverlay({
           content: reactionContent.trim(),
           timestamp: Date.now(),
         };
-      } else if (
-        reactionType === "voice" &&
-        voiceRecording.blob &&
-        voiceRecording.base64
-      ) {
+      } else if (reactionType === "voice" && voiceRecording.blob && voiceRecording.base64) {
         console.log("🎤 Preparing voice reaction:", {
           blobSize: voiceRecording.blob.size,
           blobType: voiceRecording.blob.type,
@@ -401,7 +415,8 @@ export default function SocialOverlay({
         };
       }
 
-      const clipData = {
+      // Create separate clip data for friends and campfires
+      const baseClipData = {
         contentId: content.id,
         contentTitle: content.title,
         contentThumbnail: content.thumbnail,
@@ -413,23 +428,76 @@ export default function SocialOverlay({
           name: user.name,
           avatar: user.avatar,
         },
-        sharedWith,
-        shareTarget,
         reaction: reactionData,
       };
 
-      console.log("📦 Final clip data prepared:", {
-        contentTitle: clipData.contentTitle,
-        shareTarget: clipData.shareTarget,
-        recipientCount: clipData.sharedWith.length,
-        hasReaction: !!clipData.reaction,
-        reactionType: clipData.reaction?.type,
-      });
+      let friendClipId = null;
+      let campfireClipId = null;
 
-      const clipId = await createClip(clipData);
+      // Share to friends if any are selected
+      if (friendCount > 0) {
+        console.log("👥 Sharing to friends:", selectedFriends);
+        const friendClipData = {
+          ...baseClipData,
+          sharedWith: selectedFriends,
+          shareTarget: "friends" as const,
+        };
 
-      if (clipId) {
-        console.log("✅ Clip shared successfully with ID:", clipId);
+        console.log("📦 Friend clip data prepared:", {
+          contentTitle: friendClipData.contentTitle,
+          shareTarget: friendClipData.shareTarget,
+          recipientCount: friendClipData.sharedWith.length,
+          hasReaction: !!friendClipData.reaction,
+          reactionType: friendClipData.reaction?.type,
+          fromUser: friendClipData.sharedBy.name,
+        });
+
+        try {
+          friendClipId = await createClip(friendClipData);
+          console.log("✅ Friend clip shared successfully with ID:", friendClipId);
+        } catch (error) {
+          console.error("❌ Failed to share to friends:", error);
+          throw new Error(`Failed to share to friends: ${error}`);
+        }
+      }
+
+      // Share to campfires if any are selected
+      if (campfireCount > 0) {
+        console.log("🔥 Sharing to campfires:", selectedCampfires);
+        const campfireClipData = {
+          ...baseClipData,
+          sharedWith: selectedCampfires,
+          shareTarget: "campfires" as const,
+        };
+
+        console.log("📦 Campfire clip data prepared:", {
+          contentTitle: campfireClipData.contentTitle,
+          shareTarget: campfireClipData.shareTarget,
+          recipientCount: campfireClipData.sharedWith.length,
+          hasReaction: !!campfireClipData.reaction,
+          reactionType: campfireClipData.reaction?.type,
+          fromUser: campfireClipData.sharedBy.name,
+        });
+
+        try {
+          campfireClipId = await createClip(campfireClipData);
+          console.log("✅ Campfire clip shared successfully with ID:", campfireClipId);
+        } catch (error) {
+          console.error("❌ Failed to share to campfires:", error);
+          throw new Error(`Failed to share to campfires: ${error}`);
+        }
+      }
+
+      // Success if at least one sharing succeeded
+      if (friendClipId || campfireClipId) {
+        console.log("✅ Clip sharing completed successfully:", {
+          friendClipId,
+          campfireClipId,
+          sharedToFriends: friendCount,
+          sharedToCampfires: campfireCount,
+          totalShared: totalSelected,
+        });
+
         setStep("success");
 
         setTimeout(() => {
@@ -438,7 +506,7 @@ export default function SocialOverlay({
           setIsSharing(false);
         }, 3000);
       } else {
-        throw new Error("Failed to create clip - no ID returned");
+        throw new Error("Failed to share to any recipients");
       }
     } catch (error) {
       console.error("❌ Failed to create clip:", error);
@@ -477,24 +545,24 @@ export default function SocialOverlay({
     );
   };
 
+  // REPLACE the getSelectedCount function:
   const getSelectedCount = () => {
-    return shareTarget === "friends"
-      ? selectedFriends.length
-      : selectedCampfires.length;
+    return selectedFriends.length + selectedCampfires.length;
   };
 
+  // REPLACE the getSelectedNames function:
   const getSelectedNames = () => {
-    if (shareTarget === "friends") {
-      return selectedFriends.map((id) => {
-        const friend = userFriends.find((f) => f.id === id);
-        return friend?.name || "Unknown";
-      });
-    } else {
-      return selectedCampfires.map((id) => {
-        const campfire = userCampfires.find((c) => c.id === id);
-        return campfire?.name || "Unknown";
-      });
-    }
+    const friendNames = selectedFriends.map((id) => {
+      const friend = userFriends.find((f) => f.id === id);
+      return friend?.name || "Unknown Friend";
+    });
+
+    const campfireNames = selectedCampfires.map((id) => {
+      const campfire = userCampfires.find((c) => c.id === id);
+      return campfire?.name || "Unknown Campfire";
+    });
+
+    return [...friendNames, ...campfireNames];
   };
 
   const renderClipStep = () => (
@@ -533,11 +601,10 @@ export default function SocialOverlay({
             <button
               key={duration}
               onClick={() => setClipDuration(duration)}
-              className={`p-3 rounded-lg border-2 transition-colors ${
-                clipDuration === duration
-                  ? "border-netflix-red bg-netflix-red/10 text-white"
-                  : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
-              }`}
+              className={`p-3 rounded-lg border-2 transition-colors ${clipDuration === duration
+                ? "border-netflix-red bg-netflix-red/10 text-white"
+                : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
+                }`}
             >
               {duration} seconds
             </button>
@@ -593,11 +660,10 @@ export default function SocialOverlay({
             setReactionType("text");
             deleteVoiceRecording(); // Clear voice recording when switching to text
           }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            reactionType === "text"
-              ? "bg-netflix-red text-white"
-              : "text-gray-400 hover:text-white"
-          }`}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${reactionType === "text"
+            ? "bg-netflix-red text-white"
+            : "text-gray-400 hover:text-white"
+            }`}
         >
           <MessageSquare className="h-4 w-4" />
           <span>Text</span>
@@ -607,11 +673,10 @@ export default function SocialOverlay({
             setReactionType("voice");
             setReactionContent(""); // Clear text when switching to voice
           }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            reactionType === "voice"
-              ? "bg-netflix-red text-white"
-              : "text-gray-400 hover:text-white"
-          }`}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${reactionType === "voice"
+            ? "bg-netflix-red text-white"
+            : "text-gray-400 hover:text-white"
+            }`}
         >
           <Mic className="h-4 w-4" />
           <span>Voice</span>
@@ -680,30 +745,46 @@ export default function SocialOverlay({
         <p className="text-gray-400">Choose who to share this clip with</p>
       </div>
 
-      {/* Share Target Toggle */}
-      <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
-        <button
-          onClick={() => setShareTarget("friends")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            shareTarget === "friends"
+      {/* Enhanced Share Target Toggle - allows both */}
+      <div className="space-y-4">
+        <div className="text-center">
+          <p className="text-gray-400 text-sm">
+            Select friends and/or campfires to share with
+          </p>
+        </div>
+
+        <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
+          <button
+            onClick={() => setShareTarget("friends")}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${shareTarget === "friends"
               ? "bg-netflix-red text-white"
               : "text-gray-400 hover:text-white"
-          }`}
-        >
-          <User className="h-4 w-4" />
-          <span>Friends ({userFriends.length})</span>
-        </button>
-        <button
-          onClick={() => setShareTarget("campfires")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            shareTarget === "campfires"
+              }`}
+          >
+            <User className="h-4 w-4" />
+            <span>Friends ({userFriends.length})</span>
+            {selectedFriends.length > 0 && (
+              <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {selectedFriends.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setShareTarget("campfires")}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${shareTarget === "campfires"
               ? "bg-netflix-red text-white"
               : "text-gray-400 hover:text-white"
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          <span>Campfires ({userCampfires.length})</span>
-        </button>
+              }`}
+          >
+            <Users className="h-4 w-4" />
+            <span>Campfires ({userCampfires.length})</span>
+            {selectedCampfires.length > 0 && (
+              <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {selectedCampfires.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Friends List */}
@@ -742,9 +823,8 @@ export default function SocialOverlay({
                   <p className="text-white font-medium">{friend.name}</p>
                   <div className="flex items-center space-x-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${
-                        friend.isOnline ? "bg-green-500" : "bg-gray-500"
-                      }`}
+                      className={`w-2 h-2 rounded-full ${friend.isOnline ? "bg-green-500" : "bg-gray-500"
+                        }`}
                     />
                     <p className="text-gray-400 text-sm">{friend.status}</p>
                   </div>
@@ -793,30 +873,59 @@ export default function SocialOverlay({
         </div>
       )}
 
-      {/* Selection Summary */}
+      {/* Enhanced Selection Summary */}
       <div className="bg-gray-800 rounded-lg p-4">
         <div className="flex items-center space-x-2 text-sm text-gray-400 mb-2">
-          <span>Selected:</span>
+          <span>Selected Recipients:</span>
           <span className="text-white font-medium">
-            {getSelectedCount()}{" "}
-            {shareTarget === "friends" ? "friend" : "campfire"}
-            {getSelectedCount() !== 1 ? "s" : ""}
+            {getSelectedCount()} total
+            {selectedFriends.length > 0 && ` (${selectedFriends.length} friends)`}
+            {selectedCampfires.length > 0 && ` (${selectedCampfires.length} campfires)`}
           </span>
         </div>
         {getSelectedCount() > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {getSelectedNames().map((name) => (
-              <span
-                key={name}
-                className="bg-netflix-red/20 text-netflix-red px-2 py-1 rounded text-xs"
-              >
-                {name}
-              </span>
-            ))}
+          <div className="space-y-2">
+            {selectedFriends.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Friends:</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedFriends.map((id) => {
+                    const friend = userFriends.find((f) => f.id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs"
+                      >
+                        {friend?.name || "Unknown"}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {selectedCampfires.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Campfires:</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCampfires.map((id) => {
+                    const campfire = userCampfires.find((c) => c.id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-xs"
+                      >
+                        {campfire?.name || "Unknown"}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
+      {/* // FIND the Share button and UPDATE the text: */}
       <button
         onClick={handleShare}
         disabled={getSelectedCount() === 0 || isSharing}
@@ -825,12 +934,12 @@ export default function SocialOverlay({
         {isSharing ? (
           <>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-            <span>Sharing...</span>
+            <span>Sharing to {getSelectedCount()} recipients...</span>
           </>
         ) : (
           <>
             <Send className="h-4 w-4" />
-            <span>Share Clip</span>
+            <span>Share to {getSelectedCount()} recipients</span>
           </>
         )}
       </button>
@@ -844,9 +953,13 @@ export default function SocialOverlay({
       </div>
       <h3 className="text-xl font-semibold">Clip Shared Successfully!</h3>
       <p className="text-gray-400">
-        Your clip has been shared with {getSelectedCount()}{" "}
-        {shareTarget === "friends" ? "friend" : "campfire"}
-        {getSelectedCount() !== 1 ? "s" : ""} on FireStories
+        Your clip has been shared with {getSelectedCount()} recipients
+        {selectedFriends.length > 0 && selectedCampfires.length > 0
+          ? ` (${selectedFriends.length} friends and ${selectedCampfires.length} campfires)`
+          : selectedFriends.length > 0
+            ? ` (${selectedFriends.length} friends)`
+            : ` (${selectedCampfires.length} campfires)`
+        }
       </p>
 
       <div className="bg-gray-800 rounded-lg p-4">
@@ -855,9 +968,22 @@ export default function SocialOverlay({
         <p className="text-gray-400 text-sm">
           {formatTime(startTime)} - {formatTime(endTime)} ({clipDuration}s)
         </p>
-        <p className="text-gray-400 text-sm mt-2">
-          Shared with: {getSelectedNames().join(", ")}
-        </p>
+        <div className="mt-2 space-y-1">
+          {selectedFriends.length > 0 && (
+            <p className="text-blue-400 text-sm">
+              Shared with friends: {selectedFriends.map(id =>
+                userFriends.find(f => f.id === id)?.name || "Unknown"
+              ).join(", ")}
+            </p>
+          )}
+          {selectedCampfires.length > 0 && (
+            <p className="text-orange-400 text-sm">
+              Shared with campfires: {selectedCampfires.map(id =>
+                userCampfires.find(c => c.id === id)?.name || "Unknown"
+              ).join(", ")}
+            </p>
+          )}
+        </div>
         {reactionType === "voice" && voiceRecording.blob && (
           <p className="text-netflix-red text-sm mt-1">
             + Voice reaction attached
@@ -871,8 +997,7 @@ export default function SocialOverlay({
       </div>
 
       <div className="text-sm text-gray-400">
-        Your {shareTarget === "friends" ? "friends" : "campfire members"} can
-        now see this clip in their FireStories chat!
+        All recipients can now see this clip in their FireStories chat!
       </div>
     </div>
   );
@@ -897,13 +1022,12 @@ export default function SocialOverlay({
                 return (
                   <div
                     key={stepName}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      step === stepName
-                        ? "bg-netflix-red"
-                        : currentStepIndex > stepIndex
+                    className={`w-2 h-2 rounded-full transition-colors ${step === stepName
+                      ? "bg-netflix-red"
+                      : currentStepIndex > stepIndex
                         ? "bg-gray-500"
                         : "bg-gray-700"
-                    }`}
+                      }`}
                   />
                 );
               })}
